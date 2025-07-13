@@ -1,7 +1,13 @@
-# Update Book Title
+from bookshelf.models import Book
 
-```python
+# Retrieve the book to update
 book = Book.objects.get(title="1984")
+
+# Update the title
 book.title = "Nineteen Eighty-Four"
 book.save()
-print(Book.objects.get(id=book.id).title)
+
+# Confirm the update
+print(f"Updated book title: {book.title}")
+print(f"Author: {book.author}")
+print(f"Publication Year: {book.publication_year}")
