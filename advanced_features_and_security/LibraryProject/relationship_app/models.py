@@ -55,9 +55,10 @@ class Book(models.Model):
 
     class Meta:
         permissions = [
-            ("can_add_book", "Can add book"),
-            ("can_change_book", "Can change book"),
-            ("can_delete_book", "Can delete book"),
+            ("can_view", "Can view book"),
+            ("can_create", "Can create book"),
+            ("can_edit", "Can edit book"),
+            ("can_delete", "Can delete book"),
         ]
 
 class Library(models.Model):
@@ -95,3 +96,22 @@ def create_user_profile(sender, instance, created, **kwargs):
 @receiver(post_save, sender=settings.AUTH_USER_MODEL)
 def save_user_profile(sender, instance, **kwargs):
     instance.userprofile.save()
+
+# ---
+# Permissions and Groups Documentation
+#
+# Custom permissions for the Book model:
+#   - can_view:   Allows viewing books
+#   - can_create: Allows creating new books
+#   - can_edit:   Allows editing existing books
+#   - can_delete: Allows deleting books
+#
+# Groups to create in Django admin:
+#   - Viewers: Assign can_view
+#   - Editors: Assign can_view, can_create, can_edit
+#   - Admins:  Assign all permissions (can_view, can_create, can_edit, can_delete)
+#
+# Assign users to these groups via the Django admin interface.
+#
+# In views, @permission_required decorators enforce these permissions.
+# ---
