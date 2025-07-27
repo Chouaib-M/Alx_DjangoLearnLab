@@ -23,9 +23,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-26#bd&6wdh0@k=(sctet9zr2!p4gple_e8)txdlg3pwrc0e0pt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False  # Set to False in production for security
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']  # Set to your domain in production
 
 
 # Application definition
@@ -39,6 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'bookshelf',
     'relationship_app',
+    'csp',  # django-csp for Content Security Policy
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'csp.middleware.CSPMiddleware',  # django-csp middleware
 ]
 
 ROOT_URLCONF = 'LibraryProject.urls'
@@ -125,3 +127,24 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom user model
 AUTH_USER_MODEL = 'bookshelf.CustomUser'
+
+# Security settings
+SECURE_BROWSER_XSS_FILTER = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_CONTENT_TYPE_NOSNIFF = True
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+# Content Security Policy (CSP) settings
+CSP_DEFAULT_SRC = ("'self'",)
+CSP_SCRIPT_SRC = ("'self'",)
+CSP_STYLE_SRC = ("'self'",)
+CSP_IMG_SRC = ("'self'",)
+
+# ---
+# Security Best Practices Documentation
+# - DEBUG is set to False for production
+# - SECURE_BROWSER_XSS_FILTER, X_FRAME_OPTIONS, SECURE_CONTENT_TYPE_NOSNIFF are enabled for browser-side protections
+# - CSRF_COOKIE_SECURE and SESSION_COOKIE_SECURE ensure cookies are sent over HTTPS only
+# - django-csp is used to set a Content Security Policy header to mitigate XSS
+# ---
