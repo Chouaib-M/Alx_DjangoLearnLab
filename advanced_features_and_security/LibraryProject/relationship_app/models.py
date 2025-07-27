@@ -115,3 +115,5 @@ def save_user_profile(sender, instance, **kwargs):
 #
 # In views, @permission_required decorators enforce these permissions.
 # ---
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Required for some deployments

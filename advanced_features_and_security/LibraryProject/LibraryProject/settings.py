@@ -161,3 +161,6 @@ CSP_IMG_SRC = ("'self'",)
 # - CSRF_COOKIE_SECURE and SESSION_COOKIE_SECURE ensure cookies are sent over HTTPS only
 # - django-csp is used to set a Content Security Policy header to mitigate XSS
 # ---
+
+# If behind a proxy/load balancer, ensure Django knows to trust the X-Forwarded-Proto header for HTTPS
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')  # Required for some deployments
