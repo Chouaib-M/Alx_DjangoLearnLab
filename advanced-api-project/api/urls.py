@@ -46,6 +46,11 @@ urlpatterns = [
     path('test-is-authenticated/', views.TestIsAuthenticatedView.as_view(), name='test-is-authenticated'),
     path('test-is-authenticated-or-readonly/', views.TestIsAuthenticatedOrReadOnlyView.as_view(), name='test-is-authenticated-or-readonly'),
     
+    # Dedicated search and ordering endpoints
+    path('books/search/', views.BookSearchView.as_view(), name='book-search'),
+    path('books/ordering/', views.BookOrderingView.as_view(), name='book-ordering'),
+    path('books/filter/', views.BookFilterView.as_view(), name='book-filter'),
+    
     # Include ViewSet URLs
     path('', include(router.urls)),
 ] 

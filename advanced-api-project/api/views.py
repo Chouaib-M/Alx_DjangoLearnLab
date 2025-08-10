@@ -3,9 +3,12 @@ from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
+from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework.filters import SearchFilter, OrderingFilter
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer, AuthorListSerializer
+from django.db.models import Q
 
 
 # Test view to explicitly demonstrate permission classes
@@ -49,9 +52,9 @@ class BookListView(generics.ListAPIView):
     serializer_class = BookSerializer
     permission_classes = [AllowAny]  # Allow read access to everyone
     
-    # Comprehensive filtering and searching capabilities
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['author', 'publication_year']
+    # Django REST Framework filtering capabilities
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['author', 'publication_year', 'title']
     search_fields = ['title', 'author__name']
     ordering_fields = ['title', 'publication_year', 'author__name', 'id']
     ordering = ['-publication_year', 'title']  # Default ordering
@@ -281,9 +284,9 @@ class BookListCreateView(generics.ListCreateAPIView):
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]  # Read for everyone, write for authenticated
     
-    # Comprehensive filtering and searching capabilities
-    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
-    filterset_fields = ['author', 'publication_year']
+    # Django REST Framework filtering capabilities
+    filter_backends = [DjangoFilterBackend, SearchFilter, OrderingFilter]
+    filterset_fields = ['author', 'publication_year', 'title']
     search_fields = ['title', 'author__name']
     ordering_fields = ['title', 'publication_year', 'author__name', 'id']
     ordering = ['-publication_year', 'title']
@@ -458,7 +461,10 @@ def api_info(request):
                 "delete": "/api/books/<id>/delete/",
                 "combined": "/api/books/combined/",
                 "advanced": "/api/books/advanced/",
-                "create_advanced": "/api/books/create-advanced/"
+                "create_advanced": "/api/books/create-advanced/",
+                "filter": "/api/books/filter/",
+                "search": "/api/books/search/",
+                "ordering": "/api/books/ordering/"
             },
             "authors": {
                 "list": "/api/authors/",
@@ -604,3 +610,92 @@ class TestIsAuthenticatedOrReadOnlyView(generics.GenericAPIView):
     
     def post(self, request, *args, **kwargs):
         return Response({"message": "IsAuthenticatedOrReadOnly write test"})
+
+
+# Dedicated search view to explicitly demonstrate search functionality
+class BookSearchView(generics.ListAPIView):
+    """
+    Dedicated search view to enable search functionality on Book model fields.
+    
+    This view specifically demonstrates search functionality on title and author fields
+    using Django REST Framework's SearchFilter.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [AllowAny]
+    
+    # Enable search functionality on Book model fields
+    filter_backends = [SearchFilter]
+    search_fields = ['title', 'author__name']
+    
+    def get_queryset(self):
+        """
+        Custom queryset method to enhance search functionality.
+        """
+        queryset = super().get_queryset()
+        
+        # Additional search logic if needed
+        search_query = self.request.query_params.get('search', None)
+        if search_query:
+            # This demonstrates explicit search functionality
+            queryset = queryset.filter(
+                Q(title__icontains=search_query) |
+                Q(author__name__icontains=search_query)
+            )
+        
+        return queryset
+
+
+# Dedicated ordering view to explicitly demonstrate OrderingFilter
+class BookOrderingView(generics.ListAPIView):
+    """
+    Dedicated ordering view to demonstrate OrderingFilter setup.
+    
+    This view specifically demonstrates ordering functionality using
+    Django REST Framework's OrderingFilter.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [AllowAny]
+    
+    # Setup OrderingFilter
+    filter_backends = [OrderingFilter]
+    ordering_fields = ['title', 'publication_year', 'author__name', 'id']
+    ordering = ['-publication_year', 'title']
+
+
+# Dedicated filtering view to explicitly demonstrate DjangoFilterBackend
+class BookFilterView(generics.ListAPIView):
+    """
+    Dedicated filtering view to integrate Django REST Framework's filtering capabilities.
+    
+    This view allows users to filter the book list by various attributes like
+    title, author, and publication_year using DjangoFilterBackend.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [AllowAny]
+    
+    # Integrate Django REST Framework's filtering capabilities
+    filter_backends = [DjangoFilterBackend]
+    filterset_fields = ['author', 'publication_year', 'title']
+    
+    def get_queryset(self):
+        """
+        Custom queryset method to demonstrate filtering by various attributes.
+        """
+        queryset = super().get_queryset()
+        
+        # Additional filtering logic
+        author_id = self.request.query_params.get('author', None)
+        publication_year = self.request.query_params.get('publication_year', None)
+        title = self.request.query_params.get('title', None)
+        
+        if author_id:
+            queryset = queryset.filter(author_id=author_id)
+        if publication_year:
+            queryset = queryset.filter(publication_year=publication_year)
+        if title:
+            queryset = queryset.filter(title__icontains=title)
+        
+        return queryset
