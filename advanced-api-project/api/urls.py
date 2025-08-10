@@ -11,6 +11,9 @@ router.register(r'books-viewset', advanced_views.BookViewSet, basename='book-vie
 router.register(r'authors-viewset', advanced_views.AuthorViewSet, basename='author-viewset')
 
 urlpatterns = [
+    # Permission test endpoint
+    path('permission-test/', views.PermissionTestView.as_view(), name='permission-test'),
+    
     # Individual Book CRUD endpoints
     path('books/', views.BookListView.as_view(), name='book-list'),
     path('books/<int:pk>/', views.BookDetailView.as_view(), name='book-detail'),

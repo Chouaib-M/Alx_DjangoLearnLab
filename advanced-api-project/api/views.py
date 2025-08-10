@@ -2,12 +2,21 @@ from django.shortcuts import render
 from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated
-from rest_framework.permissions import IsAuthenticatedOrReadOnly
-from rest_framework.permissions import AllowAny
+from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer, AuthorListSerializer
+
+
+# Test view to explicitly demonstrate permission classes
+class PermissionTestView(generics.GenericAPIView):
+    """
+    Test view to explicitly demonstrate IsAuthenticatedOrReadOnly and IsAuthenticated permissions.
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly, IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "Permission test - IsAuthenticatedOrReadOnly and IsAuthenticated"})
 
 
 class BookListView(generics.ListAPIView):

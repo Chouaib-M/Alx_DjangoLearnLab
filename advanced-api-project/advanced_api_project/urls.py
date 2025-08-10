@@ -26,4 +26,6 @@ urlpatterns = [
     # Direct access to specific endpoints
     path('api/books/update/', include('api.urls')),
     path('api/books/delete/', include('api.urls')),
+    # Permission test endpoints
+    path('api/permission-test/', include('api.urls')),
 ]
