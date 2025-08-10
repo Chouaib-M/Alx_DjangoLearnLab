@@ -1,12 +1,186 @@
 from django.shortcuts import render
-from rest_framework import generics, status
+from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer, AuthorListSerializer
 
-# Create your views here.
 
+class BookListView(generics.ListAPIView):
+    """
+    Generic ListView for retrieving all books.
+    
+    This view provides read-only access to all books and includes
+    filtering, searching, and pagination capabilities.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [AllowAny]  # Allow read access to everyone
+    
+    # Add filtering and searching capabilities
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['author', 'publication_year']
+    search_fields = ['title', 'author__name']
+    ordering_fields = ['title', 'publication_year', 'author__name']
+    ordering = ['-publication_year', 'title']  # Default ordering
+
+
+class BookDetailView(generics.RetrieveAPIView):
+    """
+    Generic DetailView for retrieving a single book by ID.
+    
+    This view provides read-only access to individual book details
+    and includes related author information.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [AllowAny]  # Allow read access to everyone
+    lookup_field = 'pk'
+
+
+class BookCreateView(generics.CreateAPIView):
+    """
+    Generic CreateView for adding new books.
+    
+    This view handles book creation with proper validation and
+    requires user authentication for security.
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticated]  # Require authentication
+    
+    def perform_create(self, serializer):
+        """
+        Custom method to handle book creation.
+        
+        This method can be extended to add custom logic during
+        book creation, such as logging or additional validation.
+        """
+        book = serializer.save()
+        # Log the creation (you can extend this with actual logging)
+        print(f"New book created: {book.title} by {book.author.name}")
+        return book
+
+
+class BookUpdateView(generics.UpdateAPIView):
+    """
+    Generic UpdateView for modifying existing books.
+    
+    This view handles both partial and full updates of book
+    information and requires user authentication.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticated]  # Require authentication
+    lookup_field = 'pk'
+    
+    def perform_update(self, serializer):
+        """
+        Custom method to handle book updates.
+        
+        This method can be extended to add custom logic during
+        book updates, such as change tracking or validation.
+        """
+        book = serializer.save()
+        # Log the update (you can extend this with actual logging)
+        print(f"Book updated: {book.title} by {book.author.name}")
+        return book
+
+
+class BookDeleteView(generics.DestroyAPIView):
+    """
+    Generic DeleteView for removing books.
+    
+    This view handles book deletion and requires user authentication
+    for security. It also provides a custom response message.
+    """
+    queryset = Book.objects.all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticated]  # Require authentication
+    lookup_field = 'pk'
+    
+    def destroy(self, request, *args, **kwargs):
+        """
+        Custom destroy method to provide better response handling.
+        
+        This method captures the book information before deletion
+        and returns a custom response message.
+        """
+        book = self.get_object()
+        book_title = book.title
+        book_author = book.author.name
+        
+        # Perform the deletion
+        response = super().destroy(request, *args, **kwargs)
+        
+        # Custom response message
+        response.data = {
+            'message': f'Book "{book_title}" by {book_author} has been successfully deleted.',
+            'deleted_book': {
+                'title': book_title,
+                'author': book_author
+            }
+        }
+        return response
+
+
+class BookListCreateView(generics.ListCreateAPIView):
+    """
+    Combined ListCreateView for books with conditional permissions.
+    
+    This view combines listing and creation in a single endpoint,
+    with different permissions for different operations.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Read for everyone, write for authenticated
+    
+    # Add filtering and searching capabilities
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
+    filterset_fields = ['author', 'publication_year']
+    search_fields = ['title', 'author__name']
+    ordering_fields = ['title', 'publication_year', 'author__name']
+    ordering = ['-publication_year', 'title']
+    
+    def get_permissions(self):
+        """
+        Custom permission handling based on the request method.
+        
+        This method provides different permissions for different
+        HTTP methods to ensure proper access control.
+        """
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+
+class BookRetrieveUpdateDestroyView(generics.RetrieveUpdateDestroyAPIView):
+    """
+    Combined RetrieveUpdateDestroyView for comprehensive book management.
+    
+    This view provides a single endpoint for retrieving, updating,
+    and deleting individual books with appropriate permissions.
+    """
+    queryset = Book.objects.select_related('author').all()
+    serializer_class = BookSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]  # Read for everyone, write for authenticated
+    lookup_field = 'pk'
+    
+    def get_permissions(self):
+        """
+        Custom permission handling based on the request method.
+        
+        This method provides different permissions for different
+        HTTP methods to ensure proper access control.
+        """
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
+
+
+# Author views (keeping existing functionality)
 class AuthorListCreateView(generics.ListCreateAPIView):
     """
     View for listing all authors and creating new authors.
@@ -16,6 +190,13 @@ class AuthorListCreateView(generics.ListCreateAPIView):
     """
     queryset = Author.objects.all()
     serializer_class = AuthorListSerializer
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get_permissions(self):
+        """Custom permission handling based on request method."""
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 
 class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
@@ -27,29 +208,17 @@ class AuthorDetailView(generics.RetrieveUpdateDestroyAPIView):
     """
     queryset = Author.objects.prefetch_related('books').all()
     serializer_class = AuthorSerializer
-
-
-class BookListCreateView(generics.ListCreateAPIView):
-    """
-    View for listing all books and creating new books.
+    permission_classes = [IsAuthenticatedOrReadOnly]
     
-    Includes author information and validates publication year.
-    """
-    queryset = Book.objects.select_related('author').all()
-    serializer_class = BookSerializer
-
-
-class BookDetailView(generics.RetrieveUpdateDestroyAPIView):
-    """
-    View for retrieving, updating, and deleting individual books.
-    
-    Provides full book details with author information.
-    """
-    queryset = Book.objects.select_related('author').all()
-    serializer_class = BookSerializer
+    def get_permissions(self):
+        """Custom permission handling based on request method."""
+        if self.request.method == 'GET':
+            return [AllowAny()]
+        return [IsAuthenticated()]
 
 
 @api_view(['GET'])
+@permission_classes([AllowAny])
 def test_serializers(request):
     """
     Test endpoint to demonstrate serializer functionality.
@@ -88,5 +257,43 @@ def test_serializers(request):
             'author_created': created,
             'book1_created': created1,
             'book2_created': created2
+        }
+    })
+
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def api_info(request):
+    """
+    Information endpoint about the API structure and available endpoints.
+    
+    This endpoint provides documentation about the API's capabilities
+    and how to use different endpoints.
+    """
+    return Response({
+        'api_name': 'Advanced API Project - Book Management System',
+        'version': '1.0.0',
+        'description': 'A comprehensive API for managing authors and books with advanced serializers',
+        'endpoints': {
+            'books': {
+                'list': '/api/books/',
+                'detail': '/api/books/<id>/',
+                'create': '/api/books/create/',
+                'update': '/api/books/<id>/update/',
+                'delete': '/api/books/<id>/delete/',
+                'combined': '/api/books/combined/',
+                'combined_detail': '/api/books/<id>/combined/'
+            },
+            'authors': {
+                'list_create': '/api/authors/',
+                'detail': '/api/authors/<id>/'
+            },
+            'test': '/api/test/',
+            'info': '/api/info/'
+        },
+        'permissions': {
+            'read_access': 'Available to everyone',
+            'write_access': 'Requires authentication',
+            'delete_access': 'Requires authentication'
         }
     })

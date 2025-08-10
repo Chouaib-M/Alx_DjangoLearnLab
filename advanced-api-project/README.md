@@ -25,12 +25,47 @@ The project implements a book management system with Authors and Books, showcasi
 - **AuthorListSerializer**: Optimized for listing authors without nested data
 - **Custom Validation**: Publication year validation to ensure dates are not in the future
 
+### Views and ViewSets
+- **Generic Views**: Complete CRUD operations using DRF's generic views
+- **ViewSets**: Advanced ViewSets with custom actions and routing
+- **Custom Actions**: Specialized endpoints for specific business logic
+- **Permission Classes**: Granular access control based on user authentication and roles
+- **Advanced Filtering**: Dynamic filtering, searching, and ordering capabilities
+
 ### API Endpoints
+
+#### Basic CRUD Operations
+- `GET /api/books/` - List all books (read-only)
+- `GET /api/books/<id>/` - Retrieve a single book (read-only)
+- `POST /api/books/create/` - Create a new book (requires authentication)
+- `PUT /api/books/<id>/update/` - Update an existing book (requires authentication)
+- `DELETE /api/books/<id>/delete/` - Delete a book (requires authentication)
+
+#### Combined Endpoints
+- `GET/POST /api/books/combined/` - List and create books in one endpoint
+- `GET/PUT/DELETE /api/books/<id>/combined/` - Retrieve, update, and delete in one endpoint
+
+#### Advanced Views
+- `GET /api/books/advanced/` - Advanced book listing with filtering and search
+- `POST /api/books/create-advanced/` - Advanced book creation with validation
+
+#### ViewSet Endpoints (DRF Router)
+- `GET/POST /api/books-viewset/` - ViewSet for books with custom actions
+- `GET/PUT/DELETE /api/books-viewset/<id>/` - Individual book operations via ViewSet
+- `GET /api/books-viewset/recent_books/` - Get recently published books
+- `GET /api/books-viewset/book_statistics/` - Get book statistics
+- `POST /api/books-viewset/<id>/duplicate_book/` - Duplicate an existing book
+
+#### Author Endpoints
 - `GET/POST /api/authors/` - List and create authors
 - `GET/PUT/DELETE /api/authors/<id>/` - Retrieve, update, and delete authors
-- `GET/POST /api/books/` - List and create books
-- `GET/PUT/DELETE /api/books/<id>/` - Retrieve, update, and delete books
+- `GET /api/authors-viewset/` - ViewSet for authors
+- `GET /api/authors-viewset/<id>/books_by_author/` - Get all books by an author
+- `GET /api/authors-viewset/prolific_authors/` - Get authors with most books
+
+#### Utility Endpoints
 - `GET /api/test/` - Test endpoint to demonstrate serializer functionality
+- `GET /api/info/` - API information and endpoint documentation
 
 ## Installation and Setup
 
@@ -80,23 +115,81 @@ The project implements a book management system with Authors and Books, showcasi
 
 ### Example API Usage
 
-#### Create an Author
+#### Basic CRUD Operations
+
+**List all books:**
 ```bash
-curl -X POST http://localhost:8000/api/authors/ \
-  -H "Content-Type: application/json" \
-  -d '{"name": "Jane Doe"}'
+curl http://localhost:8000/api/books/
 ```
 
-#### Create a Book
+**Create a book (requires authentication):**
 ```bash
-curl -X POST http://localhost:8000/api/books/ \
+curl -X POST http://localhost:8000/api/books/create/ \
   -H "Content-Type: application/json" \
+  -H "Authorization: Token YOUR_TOKEN" \
   -d '{"title": "Sample Book", "publication_year": 2020, "author": 1}'
 ```
 
-#### Get Author with Books
+**Update a book (requires authentication):**
+```bash
+curl -X PUT http://localhost:8000/api/books/1/update/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -d '{"title": "Updated Book Title", "publication_year": 2021, "author": 1}'
+```
+
+**Delete a book (requires authentication):**
+```bash
+curl -X DELETE http://localhost:8000/api/books/1/delete/ \
+  -H "Authorization: Token YOUR_TOKEN"
+```
+
+#### Advanced Features
+
+**Filter books by publication year:**
+```bash
+curl "http://localhost:8000/api/books/?min_year=2000&max_year=2020"
+```
+
+**Search books by title or author:**
+```bash
+curl "http://localhost:8000/api/books/advanced/?search=tolkien"
+```
+
+**Get book statistics:**
+```bash
+curl http://localhost:8000/api/books-viewset/book_statistics/
+```
+
+**Get recent books:**
+```bash
+curl http://localhost:8000/api/books-viewset/recent_books/
+```
+
+**Duplicate a book:**
+```bash
+curl -X POST http://localhost:8000/api/books-viewset/1/duplicate_book/ \
+  -H "Authorization: Token YOUR_TOKEN"
+```
+
+#### Author Operations
+
+**Create an author:**
+```bash
+curl -X POST http://localhost:8000/api/authors/ \
+  -H "Content-Type: application/json" \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -d '{"name": "Jane Doe"}'
+```
+
+**Get author with books:**
 ```bash
 curl http://localhost:8000/api/authors/1/
+```
+
+**Get prolific authors:**
+```bash
+curl http://localhost:8000/api/authors-viewset/prolific_authors/
 ```
 
 ## Project Structure
@@ -135,10 +228,29 @@ advanced-api-project/
 - **Custom Validation**: Publication year validation in BookSerializer
 - **Read-only Fields**: Computed fields like book_count and author_name
 
+### View Architecture
+- **Generic Views**: Standard CRUD operations with `ListAPIView`, `CreateAPIView`, etc.
+- **ViewSets**: Advanced functionality with `ModelViewSet` and custom actions
+- **Custom Actions**: Specialized endpoints using `@action` decorator
+- **Router Integration**: Automatic URL generation for ViewSets
+
+### Permission System
+- **Granular Control**: Different permissions for different HTTP methods
+- **Custom Permissions**: Advanced permission classes for complex business rules
+- **Authentication Levels**: Read-only for everyone, write operations require authentication
+- **Role-based Access**: Staff-only operations for sensitive actions like deletion
+
+### Advanced Features
+- **Dynamic Filtering**: Query parameter-based filtering and searching
+- **Custom Querysets**: Optimized database queries with `select_related` and `prefetch_related`
+- **Response Customization**: Enhanced response formatting with metadata
+- **Error Handling**: Comprehensive error handling and validation
+
 ### Validation
 - **Publication Year**: Cannot be in the future
 - **Model-level Validation**: Custom clean() method in Book model
 - **Serializer Validation**: Additional validation in BookSerializer
+- **Business Logic**: Custom validation for duplicate book prevention
 
 ## Testing
 
