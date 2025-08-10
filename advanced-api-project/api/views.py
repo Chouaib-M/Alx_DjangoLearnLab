@@ -2,7 +2,9 @@ from django.shortcuts import render
 from rest_framework import generics, status, permissions, filters
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly, AllowAny
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticatedOrReadOnly
+from rest_framework.permissions import AllowAny
 from django_filters.rest_framework import DjangoFilterBackend
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer, AuthorListSerializer
@@ -349,3 +351,27 @@ class SimpleTestView(generics.GenericAPIView):
             "user": str(request.user),
             "authenticated": request.user.is_authenticated
         })
+
+
+# Additional test views to explicitly demonstrate permission classes
+class TestIsAuthenticatedView(generics.GenericAPIView):
+    """
+    Test view explicitly using IsAuthenticated permission.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "IsAuthenticated permission test"})
+
+
+class TestIsAuthenticatedOrReadOnlyView(generics.GenericAPIView):
+    """
+    Test view explicitly using IsAuthenticatedOrReadOnly permission.
+    """
+    permission_classes = [IsAuthenticatedOrReadOnly]
+    
+    def get(self, request, *args, **kwargs):
+        return Response({"message": "IsAuthenticatedOrReadOnly permission test"})
+    
+    def post(self, request, *args, **kwargs):
+        return Response({"message": "IsAuthenticatedOrReadOnly write test"})

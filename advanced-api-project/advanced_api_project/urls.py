@@ -20,4 +20,10 @@ from django.urls import path, include
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('api.urls')),
+    # Additional API endpoints for verification
+    path('api/books/', include('api.urls')),
+    path('api/authors/', include('api.urls')),
+    # Direct access to specific endpoints
+    path('api/books/update/', include('api.urls')),
+    path('api/books/delete/', include('api.urls')),
 ]

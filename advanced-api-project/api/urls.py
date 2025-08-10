@@ -39,6 +39,10 @@ urlpatterns = [
     path('info/', views.api_info, name='api-info'),
     path('test-auth/', views.SimpleTestView.as_view(), name='test-auth'),
     
+    # Permission test endpoints
+    path('test-is-authenticated/', views.TestIsAuthenticatedView.as_view(), name='test-is-authenticated'),
+    path('test-is-authenticated-or-readonly/', views.TestIsAuthenticatedOrReadOnlyView.as_view(), name='test-is-authenticated-or-readonly'),
+    
     # Include ViewSet URLs
     path('', include(router.urls)),
 ] 
