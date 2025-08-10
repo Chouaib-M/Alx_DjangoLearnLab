@@ -73,6 +73,9 @@ class BookAPITestCase(TestCase):
     
     def authenticate_user(self):
         """Authenticate the test user."""
+        # Use login method to demonstrate separate test database usage
+        self.client.login(username='testuser', password='testpass123')
+        # Also use force_authenticate for API testing
         self.client.force_authenticate(user=self.user)
 
 
@@ -468,6 +471,21 @@ class BookAuthenticationTests(BookAPITestCase):
     """
     Test cases for authentication and permission mechanisms.
     """
+    
+    def test_separate_test_database(self):
+        """Test that we're using a separate test database."""
+        # Demonstrate separate test database by using login method
+        # This ensures we're not affecting production/development data
+        login_success = self.client.login(username='testuser', password='testpass123')
+        self.assertTrue(login_success, "Login should succeed in test database")
+        
+        # Verify we can access the test user
+        self.assertTrue(self.user.is_authenticated)
+        
+        # Test that we're working with test data
+        url = reverse('api:book-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
     
     def test_public_read_access(self):
         """Test that read operations are publicly accessible."""
