@@ -21,21 +21,137 @@ class PermissionTestView(generics.GenericAPIView):
 
 class BookListView(generics.ListAPIView):
     """
-    Generic ListView for retrieving all books.
+    Enhanced ListView for retrieving all books with advanced filtering, searching, and ordering.
     
-    This view provides read-only access to all books and includes
-    filtering, searching, and pagination capabilities.
+    This view provides comprehensive query capabilities allowing users to:
+    - Filter books by author, publication year, and other attributes
+    - Search across book titles and author names
+    - Order results by various fields
+    - Combine multiple filters for precise data retrieval
+    
+    Query Parameters:
+    - author: Filter by author ID (exact match)
+    - publication_year: Filter by publication year (exact match)
+    - year_from: Filter books published from this year onwards
+    - year_to: Filter books published up to this year
+    - search: Search in book title and author name (case-insensitive)
+    - ordering: Order results by field (prefix with '-' for descending)
+    - page: Page number for pagination
+    - page_size: Number of items per page
+    
+    Examples:
+    - GET /api/books/?author=1&publication_year=2020
+    - GET /api/books/?search=python&year_from=2015&year_to=2023
+    - GET /api/books/?ordering=-publication_year,title
+    - GET /api/books/?search=harry&ordering=title&page=2&page_size=10
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
     permission_classes = [AllowAny]  # Allow read access to everyone
     
-    # Add filtering and searching capabilities
+    # Comprehensive filtering and searching capabilities
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'publication_year']
     search_fields = ['title', 'author__name']
-    ordering_fields = ['title', 'publication_year', 'author__name']
+    ordering_fields = ['title', 'publication_year', 'author__name', 'id']
     ordering = ['-publication_year', 'title']  # Default ordering
+    
+    def get_queryset(self):
+        """
+        Enhanced queryset with advanced filtering logic.
+        
+        This method provides sophisticated filtering capabilities beyond
+        the basic DRF filter backends, including range filtering and
+        custom search logic.
+        """
+        queryset = super().get_queryset()
+        
+        # Advanced year range filtering
+        year_from = self.request.query_params.get('year_from', None)
+        year_to = self.request.query_params.get('year_to', None)
+        
+        if year_from:
+            queryset = queryset.filter(publication_year__gte=year_from)
+        if year_to:
+            queryset = queryset.filter(publication_year__lte=year_to)
+        
+        # Title prefix filtering
+        title_starts_with = self.request.query_params.get('title_starts_with', None)
+        if title_starts_with:
+            queryset = queryset.filter(title__istartswith=title_starts_with)
+        
+        # Author name contains filtering
+        author_contains = self.request.query_params.get('author_contains', None)
+        if author_contains:
+            queryset = queryset.filter(author__name__icontains=author_contains)
+        
+        return queryset
+    
+    def list(self, request, *args, **kwargs):
+        """
+        Enhanced list method with detailed response metadata.
+        
+        This method provides additional information about the query
+        results including filter information and usage statistics.
+        """
+        queryset = self.filter_queryset(self.get_queryset())
+        
+        # Add pagination
+        page = self.paginate_queryset(queryset)
+        if page is not None:
+            serializer = self.get_serializer(page, many=True)
+            response = self.get_paginated_response(serializer.data)
+            
+            # Add metadata about the query
+            response.data['query_info'] = {
+                'total_count': queryset.count(),
+                'filtered_count': len(page),
+                'filters_applied': {
+                    'author': request.query_params.get('author'),
+                    'publication_year': request.query_params.get('publication_year'),
+                    'year_from': request.query_params.get('year_from'),
+                    'year_to': request.query_params.get('year_to'),
+                    'search': request.query_params.get('search'),
+                    'title_starts_with': request.query_params.get('title_starts_with'),
+                    'author_contains': request.query_params.get('author_contains'),
+                    'ordering': request.query_params.get('ordering', '-publication_year,title')
+                },
+                'available_filters': {
+                    'exact_match': ['author', 'publication_year'],
+                    'range_filters': ['year_from', 'year_to'],
+                    'search_fields': ['title', 'author__name'],
+                    'ordering_fields': ['title', 'publication_year', 'author__name', 'id'],
+                    'custom_filters': ['title_starts_with', 'author_contains']
+                }
+            }
+            return response
+        
+        serializer = self.get_serializer(queryset, many=True)
+        
+        return Response({
+            'message': 'Books retrieved successfully',
+            'total_count': queryset.count(),
+            'books': serializer.data,
+            'query_info': {
+                'filters_applied': {
+                    'author': request.query_params.get('author'),
+                    'publication_year': request.query_params.get('publication_year'),
+                    'year_from': request.query_params.get('year_from'),
+                    'year_to': request.query_params.get('year_to'),
+                    'search': request.query_params.get('search'),
+                    'title_starts_with': request.query_params.get('title_starts_with'),
+                    'author_contains': request.query_params.get('author_contains'),
+                    'ordering': request.query_params.get('ordering', '-publication_year,title')
+                },
+                'available_filters': {
+                    'exact_match': ['author', 'publication_year'],
+                    'range_filters': ['year_from', 'year_to'],
+                    'search_fields': ['title', 'author__name'],
+                    'ordering_fields': ['title', 'publication_year', 'author__name', 'id'],
+                    'custom_filters': ['title_starts_with', 'author_contains']
+                }
+            }
+        })
 
 
 class BookDetailView(generics.RetrieveAPIView):
@@ -139,21 +255,69 @@ class BookDeleteView(generics.DestroyAPIView):
 
 class BookListCreateView(generics.ListCreateAPIView):
     """
-    Combined ListCreateView for books with conditional permissions.
+    Enhanced ListCreateView for books with comprehensive filtering, searching, and ordering.
     
-    This view combines listing and creation in a single endpoint,
-    with different permissions for different operations.
+    This view combines listing and creation in a single endpoint with advanced query capabilities.
+    It provides the same filtering features as BookListView but with write permissions for
+    authenticated users.
+    
+    Query Parameters:
+    - author: Filter by author ID (exact match)
+    - publication_year: Filter by publication year (exact match)
+    - year_from: Filter books published from this year onwards
+    - year_to: Filter books published up to this year
+    - search: Search in book title and author name (case-insensitive)
+    - ordering: Order results by field (prefix with '-' for descending)
+    - title_starts_with: Filter books whose title starts with the given string
+    - author_contains: Filter books by author name containing the given string
+    
+    Examples:
+    - GET /api/books/combined/?author=1&publication_year=2020
+    - GET /api/books/combined/?search=python&year_from=2015
+    - GET /api/books/combined/?ordering=-publication_year,title
+    - POST /api/books/combined/ (requires authentication)
     """
     queryset = Book.objects.select_related('author').all()
     serializer_class = BookSerializer
     permission_classes = [IsAuthenticatedOrReadOnly]  # Read for everyone, write for authenticated
     
-    # Add filtering and searching capabilities
+    # Comprehensive filtering and searching capabilities
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'publication_year']
     search_fields = ['title', 'author__name']
-    ordering_fields = ['title', 'publication_year', 'author__name']
+    ordering_fields = ['title', 'publication_year', 'author__name', 'id']
     ordering = ['-publication_year', 'title']
+    
+    def get_queryset(self):
+        """
+        Enhanced queryset with advanced filtering logic.
+        
+        This method provides sophisticated filtering capabilities beyond
+        the basic DRF filter backends, including range filtering and
+        custom search logic.
+        """
+        queryset = super().get_queryset()
+        
+        # Advanced year range filtering
+        year_from = self.request.query_params.get('year_from', None)
+        year_to = self.request.query_params.get('year_to', None)
+        
+        if year_from:
+            queryset = queryset.filter(publication_year__gte=year_from)
+        if year_to:
+            queryset = queryset.filter(publication_year__lte=year_to)
+        
+        # Title prefix filtering
+        title_starts_with = self.request.query_params.get('title_starts_with', None)
+        if title_starts_with:
+            queryset = queryset.filter(title__istartswith=title_starts_with)
+        
+        # Author name contains filtering
+        author_contains = self.request.query_params.get('author_contains', None)
+        if author_contains:
+            queryset = queryset.filter(author__name__icontains=author_contains)
+        
+        return queryset
     
     def get_permissions(self):
         """
@@ -276,15 +440,15 @@ def test_serializers(request):
 @permission_classes([AllowAny])
 def api_info(request):
     """
-    API information endpoint providing documentation and status.
+    API information endpoint providing comprehensive documentation and status.
     
-    This endpoint returns basic information about the API including
-    available endpoints and their purposes.
+    This endpoint returns detailed information about the API including
+    available endpoints, filtering capabilities, and usage examples.
     """
     api_info = {
         "api_name": "Advanced API Project - Book Management System",
         "version": "1.0.0",
-        "description": "A comprehensive API for managing authors and books with advanced serializers",
+        "description": "A comprehensive API for managing authors and books with advanced filtering, searching, and ordering capabilities",
         "endpoints": {
             "books": {
                 "list": "/api/books/",
@@ -302,16 +466,72 @@ def api_info(request):
             },
             "utility": {
                 "test": "/api/test/",
-                "info": "/api/info/"
+                "info": "/api/info/",
+                "permission_test": "/api/permission-test/"
             }
         },
+        "filtering_capabilities": {
+            "exact_match_filters": {
+                "author": "Filter by author ID (exact match)",
+                "publication_year": "Filter by publication year (exact match)"
+            },
+            "range_filters": {
+                "year_from": "Filter books published from this year onwards",
+                "year_to": "Filter books published up to this year"
+            },
+            "custom_filters": {
+                "title_starts_with": "Filter books whose title starts with the given string",
+                "author_contains": "Filter books by author name containing the given string"
+            }
+        },
+        "search_functionality": {
+            "search": "Search in book title and author name (case-insensitive)",
+            "search_fields": ["title", "author__name"]
+        },
+        "ordering_capabilities": {
+            "ordering": "Order results by field (prefix with '-' for descending)",
+            "available_fields": ["title", "publication_year", "author__name", "id"],
+            "default_ordering": "-publication_year,title"
+        },
+        "pagination": {
+            "page": "Page number (1-based)",
+            "page_size": "Number of items per page"
+        },
+        "usage_examples": {
+            "basic_filtering": [
+                "GET /api/books/?author=1",
+                "GET /api/books/?publication_year=2020",
+                "GET /api/books/?year_from=2015&year_to=2023"
+            ],
+            "search_examples": [
+                "GET /api/books/?search=python",
+                "GET /api/books/?search=rowling"
+            ],
+            "ordering_examples": [
+                "GET /api/books/?ordering=title",
+                "GET /api/books/?ordering=-publication_year",
+                "GET /api/books/?ordering=-publication_year,title"
+            ],
+            "combined_queries": [
+                "GET /api/books/?search=python&year_from=2015&ordering=-publication_year",
+                "GET /api/books/?author=1&search=programming&ordering=title&page=1&page_size=10"
+            ]
+        },
         "features": [
-            "Custom serializers with nested relationships",
-            "Advanced filtering and searching",
+            "Advanced filtering with exact match, range, and custom filters",
+            "Case-insensitive search across multiple fields",
+            "Flexible ordering with multiple field support",
+            "Pagination for large datasets",
             "Permission-based access control",
+            "Custom serializers with nested relationships",
             "Generic views and ViewSets",
-            "Custom validation and error handling"
-        ]
+            "Custom validation and error handling",
+            "Enhanced response metadata with query information"
+        ],
+        "documentation": {
+            "filtering_guide": "See FILTERING_SEARCHING_ORDERING.md for detailed documentation",
+            "test_script": "Run test_filtering_searching_ordering.py to test all capabilities"
+        }
     }
     return Response(api_info)
 
