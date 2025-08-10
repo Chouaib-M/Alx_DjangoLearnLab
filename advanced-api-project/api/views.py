@@ -265,35 +265,87 @@ def test_serializers(request):
 @permission_classes([AllowAny])
 def api_info(request):
     """
-    Information endpoint about the API structure and available endpoints.
+    API information endpoint providing documentation and status.
     
-    This endpoint provides documentation about the API's capabilities
-    and how to use different endpoints.
+    This endpoint returns basic information about the API including
+    available endpoints and their purposes.
+    """
+    api_info = {
+        "api_name": "Advanced API Project - Book Management System",
+        "version": "1.0.0",
+        "description": "A comprehensive API for managing authors and books with advanced serializers",
+        "endpoints": {
+            "books": {
+                "list": "/api/books/",
+                "detail": "/api/books/<id>/",
+                "create": "/api/books/create/",
+                "update": "/api/books/<id>/update/",
+                "delete": "/api/books/<id>/delete/",
+                "combined": "/api/books/combined/",
+                "advanced": "/api/books/advanced/",
+                "create_advanced": "/api/books/create-advanced/"
+            },
+            "authors": {
+                "list": "/api/authors/",
+                "detail": "/api/authors/<id>/"
+            },
+            "utility": {
+                "test": "/api/test/",
+                "info": "/api/info/"
+            }
+        },
+        "features": [
+            "Custom serializers with nested relationships",
+            "Advanced filtering and searching",
+            "Permission-based access control",
+            "Generic views and ViewSets",
+            "Custom validation and error handling"
+        ]
+    }
+    return Response(api_info)
+
+
+@api_view(['PUT'])
+@permission_classes([IsAuthenticated])
+def book_update_general(request):
+    """
+    General book update endpoint that requires authentication.
+    
+    This endpoint demonstrates the permission system by requiring
+    authentication for update operations.
     """
     return Response({
-        'api_name': 'Advanced API Project - Book Management System',
-        'version': '1.0.0',
-        'description': 'A comprehensive API for managing authors and books with advanced serializers',
-        'endpoints': {
-            'books': {
-                'list': '/api/books/',
-                'detail': '/api/books/<id>/',
-                'create': '/api/books/create/',
-                'update': '/api/books/<id>/update/',
-                'delete': '/api/books/<id>/delete/',
-                'combined': '/api/books/combined/',
-                'combined_detail': '/api/books/<id>/combined/'
-            },
-            'authors': {
-                'list_create': '/api/authors/',
-                'detail': '/api/authors/<id>/'
-            },
-            'test': '/api/test/',
-            'info': '/api/info/'
-        },
-        'permissions': {
-            'read_access': 'Available to everyone',
-            'write_access': 'Requires authentication',
-            'delete_access': 'Requires authentication'
-        }
+        "message": "Book update endpoint - authentication required",
+        "status": "success",
+        "permission": "authenticated_users_only"
     })
+
+
+@api_view(['DELETE'])
+@permission_classes([IsAuthenticated])
+def book_delete_general(request):
+    """
+    General book delete endpoint that requires authentication.
+    
+    This endpoint demonstrates the permission system by requiring
+    authentication for delete operations.
+    """
+    return Response({
+        "message": "Book delete endpoint - authentication required",
+        "status": "success",
+        "permission": "authenticated_users_only"
+    })
+
+
+class SimpleTestView(generics.GenericAPIView):
+    """
+    Simple test view to verify permission system.
+    """
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, *args, **kwargs):
+        return Response({
+            "message": "This endpoint requires authentication",
+            "user": str(request.user),
+            "authenticated": request.user.is_authenticated
+        })

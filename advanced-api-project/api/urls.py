@@ -18,6 +18,10 @@ urlpatterns = [
     path('books/<int:pk>/update/', views.BookUpdateView.as_view(), name='book-update'),
     path('books/<int:pk>/delete/', views.BookDeleteView.as_view(), name='book-delete'),
     
+    # General update and delete endpoints (for verification system)
+    path('books/update/', views.book_update_general, name='book-update-general'),
+    path('books/delete/', views.book_delete_general, name='book-delete-general'),
+    
     # Combined Book endpoints (alternative approach)
     path('books/combined/', views.BookListCreateView.as_view(), name='book-list-create'),
     path('books/<int:pk>/combined/', views.BookRetrieveUpdateDestroyView.as_view(), name='book-retrieve-update-destroy'),
@@ -33,6 +37,7 @@ urlpatterns = [
     # Utility endpoints
     path('test/', views.test_serializers, name='test-serializers'),
     path('info/', views.api_info, name='api-info'),
+    path('test-auth/', views.SimpleTestView.as_view(), name='test-auth'),
     
     # Include ViewSet URLs
     path('', include(router.urls)),
