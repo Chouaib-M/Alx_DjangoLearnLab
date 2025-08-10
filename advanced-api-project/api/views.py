@@ -5,7 +5,6 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticatedOrReadOnly, IsAuthenticated, AllowAny
 from django_filters import rest_framework
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework.filters import SearchFilter
 from .models import Author, Book
 from .serializers import AuthorSerializer, BookSerializer, AuthorListSerializer
 from django.db.models import Q
@@ -53,9 +52,9 @@ class BookListView(generics.ListAPIView):
     permission_classes = [AllowAny]  # Allow read access to everyone
     
     # Django REST Framework filtering capabilities
-    filter_backends = [DjangoFilterBackend, SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'publication_year', 'title']
-    # Enable search functionality on one or more fields of the Book model
+    # Enable search functionality on one or more fields of the Book model such as title and author
     search_fields = ['title', 'author__name']
     ordering_fields = ['title', 'publication_year', 'author__name', 'id']
     ordering = ['-publication_year', 'title']  # Default ordering
@@ -286,9 +285,9 @@ class BookListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticatedOrReadOnly]  # Read for everyone, write for authenticated
     
     # Django REST Framework filtering capabilities
-    filter_backends = [DjangoFilterBackend, SearchFilter, filters.OrderingFilter]
+    filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_fields = ['author', 'publication_year', 'title']
-    # Enable search functionality on one or more fields of the Book model
+    # Enable search functionality on one or more fields of the Book model such as title and author
     search_fields = ['title', 'author__name']
     ordering_fields = ['title', 'publication_year', 'author__name', 'id']
     ordering = ['-publication_year', 'title']
@@ -626,8 +625,8 @@ class BookSearchView(generics.ListAPIView):
     serializer_class = BookSerializer
     permission_classes = [AllowAny]
     
-    # Enable search functionality on Book model fields
-    filter_backends = [SearchFilter]
+    # Enable search functionality on Book model fields such as title and author
+    filter_backends = [filters.SearchFilter]
     search_fields = ['title', 'author__name']
     
     def get_queryset(self):
