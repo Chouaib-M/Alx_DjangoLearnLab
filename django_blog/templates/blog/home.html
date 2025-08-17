@@ -3,18 +3,46 @@
 {% block title %}Home - Django Blog{% endblock %}
 
 {% block content %}
-  <h1>Recent Posts</h1>
-  <ul>
-    {% for post in posts %}
-      <li>
-        <h3>{{ post.title }}</h3>
-        <small>by {{ post.author.username }} on {{ post.published_date|date:'Y-m-d H:i' }}</small>
-        <p>{{ post.content|truncatewords:30 }}</p>
-      </li>
-    {% empty %}
-      <li>No posts yet.</li>
-    {% endfor %}
-  </ul>
+<div class="home-container">
+    <h1>Welcome to Django Blog</h1>
+    
+    {% if user.is_authenticated %}
+        <div class="welcome-section">
+            <p>Hello, <strong>{{ user.get_full_name|default:user.username }}</strong>! Ready to share your thoughts?</p>
+            <a href="{% url 'create_post' %}" class="btn btn-success">Create New Post</a>
+        </div>
+    {% else %}
+        <div class="welcome-section">
+            <p>Join our community to read and create amazing blog posts!</p>
+            <div class="auth-buttons">
+                <a href="{% url 'login' %}" class="btn btn-primary">Login</a>
+                <a href="{% url 'register' %}" class="btn btn-success">Register</a>
+            </div>
+        </div>
+    {% endif %}
+    
+    <div class="posts-section">
+        <h2>Recent Posts</h2>
+        {% if posts %}
+            <ul class="posts-list">
+                {% for post in posts %}
+                    <li>
+                        <h3>{{ post.title }}</h3>
+                        <small>by {{ post.author.get_full_name|default:post.author.username }} on {{ post.published_date|date:'F j, Y' }}</small>
+                        <p>{{ post.content|truncatewords:50 }}</p>
+                    </li>
+                {% endfor %}
+            </ul>
+        {% else %}
+            <div class="no-posts">
+                <p>No posts yet. Be the first to create one!</p>
+                {% if user.is_authenticated %}
+                    <a href="{% url 'create_post' %}" class="btn btn-primary">Create First Post</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
 {% endblock %}
 
 

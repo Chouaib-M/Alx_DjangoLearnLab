@@ -1,0 +1,88 @@
+{% extends 'blog/base.html' %}
+
+{% block title %}Profile - {{ user.username }}{% endblock %}
+
+{% block content %}
+<div class="profile-container">
+    <h1>Profile Management</h1>
+    
+    <div class="profile-info">
+        <h2>Welcome, {{ user.get_full_name|default:user.username }}!</h2>
+        <p><strong>Username:</strong> {{ user.username }}</p>
+        <p><strong>Email:</strong> {{ user.email }}</p>
+        <p><strong>Date Joined:</strong> {{ user.profile.date_joined|date:"F j, Y" }}</p>
+    </div>
+    
+    <div class="profile-forms">
+        <div class="form-section">
+            <h3>Update User Information</h3>
+            <form method="post" class="form">
+                {% csrf_token %}
+                
+                {% if user_form.errors %}
+                    <div class="form-errors">
+                        <h4>Please correct the following errors:</h4>
+                        {{ user_form.errors }}
+                    </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="{{ user_form.username.id_for_label }}">Username:</label>
+                    {{ user_form.username }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ user_form.email.id_for_label }}">Email:</label>
+                    {{ user_form.email }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ user_form.first_name.id_for_label }}">First Name:</label>
+                    {{ user_form.first_name }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ user_form.last_name.id_for_label }}">Last Name:</label>
+                    {{ user_form.last_name }}
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Update User Info</button>
+            </form>
+        </div>
+        
+        <div class="form-section">
+            <h3>Update Profile Details</h3>
+            <form method="post" enctype="multipart/form-data" class="form">
+                {% csrf_token %}
+                
+                {% if profile_form.errors %}
+                    <div class="form-errors">
+                        <h4>Please correct the following errors:</h4>
+                        {{ profile_form.errors }}
+                    </div>
+                {% endif %}
+                
+                <div class="form-group">
+                    <label for="{{ profile_form.bio.id_for_label }}">Bio:</label>
+                    {{ profile_form.bio }}
+                </div>
+                
+                <div class="form-group">
+                    <label for="{{ profile_form.profile_picture.id_for_label }}">Profile Picture:</label>
+                    {{ profile_form.profile_picture }}
+                    {% if user.profile.profile_picture %}
+                        <p><strong>Current:</strong> {{ user.profile.profile_picture.name }}</p>
+                    {% endif %}
+                </div>
+                
+                <button type="submit" class="btn btn-primary">Update Profile</button>
+            </form>
+        </div>
+    </div>
+    
+    <div class="profile-actions">
+        <a href="{% url 'home' %}" class="btn btn-secondary">Back to Home</a>
+        <a href="{% url 'create_post' %}" class="btn btn-success">Create New Post</a>
+    </div>
+</div>
+{% endblock %}
