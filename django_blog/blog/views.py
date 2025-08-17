@@ -47,32 +47,18 @@ class PostDetailView(DetailView):
 
 
 class PostCreateView(LoginRequiredMixin, CreateView):
-    """
-    Class-based view for creating new posts.
-    Uses Django's LoginRequiredMixin to ensure only authenticated users can create posts.
-    This implements the requirement: "Use Django's LoginRequiredMixin and UserPassesTestMixin 
-    to ensure that only the author of a post can edit or delete it."
-    """
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
     success_url = reverse_lazy('posts_list')
     
     def form_valid(self, form):
-        # Automatically set the author to the current logged-in user
         form.instance.author = self.request.user
         messages.success(self.request, 'Post created successfully!')
         return super().form_valid(form)
 
 
 class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
-    """
-    Class-based view for updating posts.
-    Uses Django's LoginRequiredMixin and UserPassesTestMixin to ensure that only 
-    the author of a post can edit it.
-    This directly implements: "Use Django's LoginRequiredMixin and UserPassesTestMixin 
-    to ensure that only the author of a post can edit or delete it."
-    """
     model = Post
     form_class = PostForm
     template_name = 'blog/post_form.html'
@@ -83,22 +69,11 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
         return super().form_valid(form)
     
     def test_func(self):
-        """
-        UserPassesTestMixin method to ensure only the author of a post can edit it.
-        Returns True if the current user is the author of the post, False otherwise.
-        """
         post = self.get_object()
         return self.request.user == post.author
 
 
 class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
-    """
-    Class-based view for deleting posts.
-    Uses Django's LoginRequiredMixin and UserPassesTestMixin to ensure that only 
-    the author of a post can delete it.
-    This directly implements: "Use Django's LoginRequiredMixin and UserPassesTestMixin 
-    to ensure that only the author of a post can edit or delete it."
-    """
     model = Post
     template_name = 'blog/post_confirm_delete.html'
     success_url = reverse_lazy('posts_list')
@@ -108,10 +83,6 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
         return super().delete(request, *args, **kwargs)
     
     def test_func(self):
-        """
-        UserPassesTestMixin method to ensure only the author of a post can delete it.
-        Returns True if the current user is the author of the post, False otherwise.
-        """
         post = self.get_object()
         return self.request.user == post.author
 
