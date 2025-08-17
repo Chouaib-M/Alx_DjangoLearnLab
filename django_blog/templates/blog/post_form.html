@@ -1,72 +1,10 @@
-{% extends 'blog/base.html' %}
-{% load static %}
-
-{% block title %}
-    {% if form.instance.pk %}Edit Post{% else %}Create New Post{% endif %}
-{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="post-form-container">
-    <div class="form-header">
-        <h1>
-            {% if form.instance.pk %}
-                Edit Post: {{ form.instance.title }}
-            {% else %}
-                Create New Blog Post
-            {% endif %}
-        </h1>
-        <p class="form-description">
-            {% if form.instance.pk %}
-                Make changes to your post below. Click "Update Post" when you're done.
-            {% else %}
-                Share your thoughts with the world! Fill in the form below to create your blog post.
-            {% endif %}
-        </p>
-    </div>
-
-    <form method="post" class="post-form">
-        {% csrf_token %}
-        
-        {% if form.errors %}
-            <div class="form-errors">
-                <h3>Please correct the following errors:</h3>
-                {{ form.errors }}
-            </div>
-        {% endif %}
-
-        <div class="form-group">
-            <label for="{{ form.title.id_for_label }}">{{ form.title.label }}:</label>
-            {{ form.title }}
-            {% if form.title.help_text %}
-                <small class="help-text">{{ form.title.help_text }}</small>
-            {% endif %}
-        </div>
-
-        <div class="form-group">
-            <label for="{{ form.content.id_for_label }}">{{ form.content.label }}:</label>
-            {{ form.content }}
-            {% if form.content.help_text %}
-                <small class="help-text">{{ form.content.help_text }}</small>
-            {% endif %}
-        </div>
-
-        <div class="form-actions">
-            <button type="submit" class="btn btn-primary">
-                {% if form.instance.pk %}Update Post{% else %}Create Post{% endif %}
-            </button>
-            <a href="{% url 'posts_list' %}" class="btn btn-secondary">Cancel</a>
-        </div>
-    </form>
-
-    <div class="post-tips">
-        <h3>Writing Tips:</h3>
-        <ul>
-            <li>Make your title engaging and descriptive</li>
-            <li>Start with a strong opening paragraph</li>
-            <li>Use clear, concise language</li>
-            <li>Break up long content with paragraphs</li>
-            <li>Proofread before publishing</li>
-        </ul>
-    </div>
-</div>
+  <h1>{% if form.instance.pk %}Edit Post{% else %}Create Post{% endif %}</h1>
+  <form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Save</button>
+  </form>
+  <a href="{% url 'posts_list' %}">Cancel</a>
 {% endblock %}

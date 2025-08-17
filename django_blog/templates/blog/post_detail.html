@@ -1,52 +1,12 @@
-{% extends 'blog/base.html' %}
-{% load static %}
-
-{% block title %}{{ post.title }}{% endblock %}
-
+{% extends "base.html" %}
 {% block content %}
-<div class="post-detail-container">
-    <article class="post-detail">
-        <header class="post-header">
-            <h1 class="post-title">{{ post.title }}</h1>
-            <div class="post-meta">
-                <span class="post-author">By {{ post.author.username }}</span>
-                <span class="post-date">{{ post.published_date|date:"F d, Y" }}</span>
-                {% if user == post.author %}
-                    <span class="post-status">Your Post</span>
-                {% endif %}
-            </div>
-        </header>
+  <h1>{{ post.title }}</h1>
+  <p>{{ post.content }}</p>
+  <p><small>By {{ post.author }} on {{ post.published_date }}</small></p>
 
-        <div class="post-content">
-            {{ post.content|linebreaks }}
-        </div>
-
-        <footer class="post-footer">
-            <div class="post-actions">
-                <a href="{% url 'posts_list' %}" class="btn btn-secondary">Back to Posts</a>
-                {% if user == post.author %}
-                    <a href="{% url 'post_update' post.pk %}" class="btn btn-primary">Edit Post</a>
-                    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Delete Post</a>
-                {% endif %}
-            </div>
-        </footer>
-    </article>
-
-    <!-- Navigation to other posts -->
-    <div class="post-navigation">
-        <div class="nav-links">
-            {% if post.get_previous_by_published_date %}
-                <a href="{% url 'post_detail' post.get_previous_by_published_date.pk %}" class="btn btn-secondary">
-                    &larr; Previous: {{ post.get_previous_by_published_date.title|truncatechars:30 }}
-                </a>
-            {% endif %}
-            
-            {% if post.get_next_by_published_date %}
-                <a href="{% url 'post_detail' post.get_next_by_published_date.pk %}" class="btn btn-secondary">
-                    Next: {{ post.get_next_by_published_date.title|truncatechars:30 }} &rarr;
-                </a>
-            {% endif %}
-        </div>
-    </div>
-</div>
+  {% if user == post.author %}
+    <a href="{% url 'post_update' post.pk %}">Edit</a> |
+    <a href="{% url 'post_delete' post.pk %}">Delete</a>
+  {% endif %}
+  <br><a href="{% url 'posts_list' %}">Back to Posts</a>
 {% endblock %}
