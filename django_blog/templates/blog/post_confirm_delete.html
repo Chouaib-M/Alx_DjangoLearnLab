@@ -1,0 +1,47 @@
+{% extends 'blog/base.html' %}
+{% load static %}
+
+{% block title %}Delete Post{% endblock %}
+
+{% block content %}
+<div class="delete-confirmation-container">
+    <div class="delete-warning">
+        <h1>Delete Post</h1>
+        <div class="warning-message">
+            <h2>⚠️ Warning: This action cannot be undone!</h2>
+            <p>You are about to delete the post: <strong>"{{ object.title }}"</strong></p>
+            <p>This will permanently remove the post and all its content from the blog.</p>
+        </div>
+
+        <div class="post-preview">
+            <h3>Post Preview:</h3>
+            <div class="preview-content">
+                <p><strong>Title:</strong> {{ object.title }}</p>
+                <p><strong>Author:</strong> {{ object.author.username }}</p>
+                <p><strong>Published:</strong> {{ object.published_date|date:"F d, Y" }}</p>
+                <p><strong>Content Preview:</strong></p>
+                <div class="content-snippet">
+                    {{ object.content|truncatewords:50 }}
+                </div>
+            </div>
+        </div>
+
+        <form method="post" class="delete-form">
+            {% csrf_token %}
+            <div class="confirmation-actions">
+                <button type="submit" class="btn btn-danger">Yes, Delete This Post</button>
+                <a href="{% url 'post_detail' object.pk %}" class="btn btn-secondary">Cancel - Keep the Post</a>
+            </div>
+        </form>
+
+        <div class="delete-tips">
+            <h3>Before you delete, consider:</h3>
+            <ul>
+                <li>Is there valuable content that could be saved?</li>
+                <li>Could the post be improved instead of deleted?</li>
+                <li>Are you sure no one will miss this content?</li>
+            </ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
