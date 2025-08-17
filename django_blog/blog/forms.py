@@ -1,7 +1,7 @@
 from django import forms
 from django.contrib.auth.forms import UserCreationForm
 from django.contrib.auth.models import User
-from .models import Post, UserProfile, Comment, Tag
+from .models import Post, UserProfile, Comment
 
 
 class CustomUserCreationForm(UserCreationForm):
@@ -43,7 +43,7 @@ class UserUpdateForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     """
-    ModelForm for creating and editing blog posts with tagging support.
+    ModelForm for creating and editing blog posts with django-taggit support.
     Used in conjunction with Django's LoginRequiredMixin and UserPassesTestMixin
     to ensure proper permissions for blog post management CRUD operations.
     
@@ -52,17 +52,8 @@ class PostForm(forms.ModelForm):
     - Update: Used with LoginRequiredMixin + UserPassesTestMixin in PostUpdateView  
     - Author field automatically set from request.user
     - Form validation for title and content fields
-    - Tag support for categorizing posts
+    - Tag support using django-taggit for categorizing posts
     """
-    tags = forms.CharField(
-        max_length=200, 
-        required=False,
-        help_text='Enter tags separated by commas (e.g., python, django, web)',
-        widget=forms.TextInput(attrs={
-            'class': 'form-control',
-            'placeholder': 'Enter tags separated by commas...'
-        })
-    )
     
     class Meta:
         model = Post
@@ -78,6 +69,10 @@ class PostForm(forms.ModelForm):
                 'rows': 10,
                 'placeholder': 'Write your post content here...',
                 'required': True
+            }),
+            'tags': forms.TextInput(attrs={
+                'class': 'form-control',
+                'placeholder': 'Enter tags separated by commas...'
             })
         }
         labels = {
@@ -87,32 +82,9 @@ class PostForm(forms.ModelForm):
         }
         help_texts = {
             'title': 'Enter a descriptive title for your blog post',
-            'content': 'Write the main content of your blog post'
+            'content': 'Write the main content of your blog post',
+            'tags': 'Enter tags separated by commas (e.g., python, django, web)'
         }
-    
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        if self.instance and self.instance.pk:
-            # Pre-populate tags field with existing tags
-            self.fields['tags'].initial = ', '.join([tag.name for tag in self.instance.tags.all()])
-    
-    def save(self, commit=True):
-        post = super().save(commit=False)
-        if commit:
-            post.save()
-            # Handle tags
-            if self.cleaned_data.get('tags'):
-                tag_names = [name.strip() for name in self.cleaned_data['tags'].split(',') if name.strip()]
-                post.tags.clear()
-                for tag_name in tag_names:
-                    tag, created = Tag.objects.get_or_create(
-                        name=tag_name,
-                        defaults={'slug': tag_name.lower().replace(' ', '-')}
-                    )
-                    post.tags.add(tag)
-            else:
-                post.tags.clear()
-        return post
 
 
 class CommentForm(forms.ModelForm):

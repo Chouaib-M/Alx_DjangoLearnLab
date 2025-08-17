@@ -2,6 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.db.models.signals import post_save
 from django.dispatch import receiver
+from taggit.managers import TaggableManager
 
 
 class Post(models.Model):
@@ -18,8 +19,7 @@ class Post(models.Model):
     published_date = models.DateTimeField(auto_now_add=True, help_text="Date and time when post was created")
     author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', 
                               help_text="Author of the post - used for permission checks")
-    tags = models.ManyToManyField(Tag, blank=True, related_name='posts', 
-                                 help_text="Tags associated with this post")
+    tags = TaggableManager(help_text="Tags associated with this post")
 
     def __str__(self) -> str:
         return self.title
@@ -51,23 +51,6 @@ class Comment(models.Model):
         verbose_name = "Comment"
         verbose_name_plural = "Comments"
 
-
-class Tag(models.Model):
-    """
-    Tag model for categorizing blog posts.
-    Allows many-to-many relationship with posts for flexible tagging.
-    """
-    name = models.CharField(max_length=100, unique=True, help_text="Tag name")
-    slug = models.SlugField(max_length=100, unique=True, help_text="URL-friendly tag name")
-    created_at = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return self.name
-    
-    class Meta:
-        ordering = ['name']
-        verbose_name = "Tag"
-        verbose_name_plural = "Tags"
 
 
 class UserProfile(models.Model):

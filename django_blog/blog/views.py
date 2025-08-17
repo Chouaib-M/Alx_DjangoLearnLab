@@ -7,7 +7,8 @@ from django.views.generic import ListView, DetailView, CreateView, UpdateView, D
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
 from django.db.models import Q
-from .models import Post, UserProfile, Comment, Tag
+from taggit.models import Tag
+from .models import Post, UserProfile, Comment
 from .forms import CustomUserCreationForm, UserProfileForm, UserUpdateForm, PostForm, CommentForm
 
 
@@ -260,7 +261,7 @@ def search_posts(request):
 def posts_by_tag(request, tag_slug):
     """Display posts filtered by a specific tag"""
     tag = get_object_or_404(Tag, slug=tag_slug)
-    posts = Post.objects.filter(tags=tag).order_by('-published_date')
+    posts = Post.objects.filter(tags__slug=tag_slug).order_by('-published_date')
     
     context = {
         'posts': posts,
