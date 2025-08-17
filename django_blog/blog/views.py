@@ -269,3 +269,21 @@ def posts_by_tag(request, tag_slug):
         'total_results': posts.count()
     }
     return render(request, 'blog/posts_by_tag.html', context)
+
+
+class PostByTagListView(ListView):
+    """Class-based view for displaying posts filtered by a specific tag"""
+    model = Post
+    template_name = 'blog/posts_by_tag.html'
+    context_object_name = 'posts'
+    paginate_by = 10
+    
+    def get_queryset(self):
+        self.tag = get_object_or_404(Tag, slug=self.kwargs['tag_slug'])
+        return Post.objects.filter(tags__slug=self.kwargs['tag_slug']).order_by('-published_date')
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['tag'] = self.tag
+        context['total_results'] = self.get_queryset().count()
+        return context
