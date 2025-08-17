@@ -6,7 +6,8 @@ from django.contrib.auth import authenticate, login, logout
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.urls import reverse_lazy
 from django.contrib.auth.models import User
-from .models import Post, UserProfile, Comment
+from django.db.models import Q
+from .models import Post, UserProfile, Comment, Tag
 from .forms import CustomUserCreationForm, UserProfileForm, UserUpdateForm, PostForm, CommentForm
 
 
@@ -233,3 +234,37 @@ class CommentDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     
     def get_success_url(self):
         return reverse_lazy('post_detail', kwargs={'pk': self.object.post.pk})
+
+
+# Search and Tag Views
+def search_posts(request):
+    """Search posts by title, content, or tags"""
+    query = request.GET.get('q', '')
+    posts = Post.objects.all()
+    
+    if query:
+        posts = posts.filter(
+            Q(title__icontains=query) |
+            Q(content__icontains=query) |
+            Q(tags__name__icontains=query)
+        ).distinct()
+    
+    context = {
+        'posts': posts,
+        'query': query,
+        'total_results': posts.count()
+    }
+    return render(request, 'blog/search_results.html', context)
+
+
+def posts_by_tag(request, tag_slug):
+    """Display posts filtered by a specific tag"""
+    tag = get_object_or_404(Tag, slug=tag_slug)
+    posts = Post.objects.filter(tags=tag).order_by('-published_date')
+    
+    context = {
+        'posts': posts,
+        'tag': tag,
+        'total_results': posts.count()
+    }
+    return render(request, 'blog/posts_by_tag.html', context)

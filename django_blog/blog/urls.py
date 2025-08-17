@@ -27,6 +27,10 @@ urlpatterns = [
     path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='edit_comment'),
     path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete_comment'),
     
+    # Search and Tag URLs
+    path('search/', views.search_posts, name='search_posts'),
+    path('tags/<slug:tag_slug>/', views.posts_by_tag, name='posts_by_tag'),
+    
     # Authentication URLs
     path('register/', views.register_view, name='register'),
     path('profile/', views.profile_view, name='profile'),
