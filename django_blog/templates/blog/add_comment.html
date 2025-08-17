@@ -1,0 +1,14 @@
+{% extends "blog/base.html" %}
+
+{% block content %}
+<h1>Add Comment</h1>
+<h2>On: {{ post.title }}</h2>
+
+<form method="post">
+  {% csrf_token %}
+  {{ form.as_p }}
+  <button type="submit">Add Comment</button>
+</form>
+
+<a href="{% url 'post_detail' post.pk %}">Cancel</a>
+{% endblock %}

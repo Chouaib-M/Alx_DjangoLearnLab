@@ -1,14 +1,55 @@
 {% extends "blog/base.html" %}
 
 {% block content %}
-<h1>{{ post.title }}</h1>
-<p>{{ post.content }}</p>
-<p>By {{ post.author.username }} on {{ post.published_date }}</p>
+<article>
+  <h1>{{ post.title }}</h1>
+  <p class="text-muted">By {{ post.author.username }} on {{ post.published_date|date:"F d, Y" }}</p>
+  
+  <div class="post-content">
+    {{ post.content|linebreaks }}
+  </div>
+  
+  {% if user.is_authenticated and user == post.author %}
+  <div class="post-actions">
+    <a href="{% url 'post_update' post.pk %}" class="btn btn-primary">Edit</a>
+    <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Delete</a>
+  </div>
+  {% endif %}
+</article>
 
-{% if user == post.author %}
-  <a href="{% url 'post_update' post.pk %}">Edit</a>
-  <a href="{% url 'post_delete' post.pk %}">Delete</a>
-{% endif %}
+<!-- Comments Section -->
+<div class="comments-section mt-4">
+  <h3>Comments ({{ post.comments.count }})</h3>
+  
+  {% if user.is_authenticated %}
+  <div class="add-comment mb-3">
+    <a href="{% url 'add_comment' post.pk %}" class="btn btn-success">Add Comment</a>
+  </div>
+  {% endif %}
+  
+  {% for comment in post.comments.all %}
+  <div class="comment mb-3 p-3 border">
+    <div class="comment-header">
+      <strong>{{ comment.author.username }}</strong>
+      <small class="text-muted">{{ comment.created_at|date:"F d, Y g:i A" }}</small>
+      {% if comment.updated_at != comment.created_at %}
+      <small class="text-muted">(edited {{ comment.updated_at|date:"F d, Y g:i A" }})</small>
+      {% endif %}
+    </div>
+    <div class="comment-content mt-2">
+      {{ comment.content|linebreaks }}
+    </div>
+    {% if user.is_authenticated and user == comment.author %}
+    <div class="comment-actions mt-2">
+      <a href="{% url 'edit_comment' comment.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+      <a href="{% url 'delete_comment' comment.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+    </div>
+    {% endif %}
+  </div>
+  {% empty %}
+  <p class="text-muted">No comments yet. Be the first to comment!</p>
+  {% endfor %}
+</div>
 
-<a href="{% url 'posts_list' %}">Back to Posts</a>
+<a href="{% url 'posts_list' %}" class="btn btn-secondary">Back to Posts</a>
 {% endblock %}

@@ -2,35 +2,35 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Home and Posts
-    path('', views.home, name='home'),
-    
-    # Post listing and viewing (accessible to all users)
-    path('posts/', views.PostListView.as_view(), name='posts_list'),
+    # Primary URL patterns for blog posts
+    path('', views.PostListView.as_view(), name='posts_list'),
+    path('posts/', views.PostListView.as_view(), name='post_list'),
     path('posts/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),
-    
-    # Post creation (requires login)
     path('posts/new/', views.PostCreateView.as_view(), name='post_create'),
-    
-    # Post editing (requires login + author permission)
     path('posts/<int:pk>/edit/', views.PostUpdateView.as_view(), name='post_update'),
-    
-    # Post deletion (requires login + author permission)
     path('posts/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
-
-    # Alternative URL patterns for checker compatibility
-    path('post/', views.PostListView.as_view(), name='post_list_alt'),
+    
+    # Alternative URL patterns for compatibility
     path('post/<int:pk>/', views.PostDetailView.as_view(), name='post_detail_alt'),
     path('post/new/', views.PostCreateView.as_view(), name='post_create_alt'),
     path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post_update_alt'),
     path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete_alt'),
-
-    # Legacy function-based view
-    path('create-post/', views.create_post, name='create_post_legacy'),
-
-    # Authentication
-    path('register/', views.register, name='register'),
-    path('login/', views.user_login, name='login'),
-    path('logout/', views.user_logout, name='logout'),
-    path('profile/', views.profile, name='profile'),
+    
+    # Legacy routes for maximum compatibility
+    path('create/', views.PostCreateView.as_view(), name='create_post'),
+    path('<int:pk>/edit/', views.PostUpdateView.as_view(), name='edit_post'),
+    path('<int:pk>/delete/', views.PostDeleteView.as_view(), name='delete_post'),
+    path('<int:pk>/', views.PostDetailView.as_view(), name='view_post'),
+    
+    # Comment URLs
+    path('post/<int:post_id>/comments/add/', views.CommentCreateView.as_view(), name='add_comment'),
+    path('comments/<int:pk>/edit/', views.CommentUpdateView.as_view(), name='edit_comment'),
+    path('comments/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete_comment'),
+    
+    # Authentication URLs
+    path('register/', views.register_view, name='register'),
+    path('profile/', views.profile_view, name='profile'),
+    
+    # Function-based view alternatives
+    path('posts/create/', views.create_post_function, name='create_post_function'),
 ]

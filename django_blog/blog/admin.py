@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Post, UserProfile
+from .models import Post, UserProfile, Comment
 
 
 @admin.register(Post)
@@ -16,4 +16,10 @@ class UserProfileAdmin(admin.ModelAdmin):
     search_fields = ("user__username", "user__email", "bio")
     list_filter = ("date_joined",)
 
-# Register your models here.
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ("author", "post", "created_at", "updated_at")
+    search_fields = ("content", "author__username", "post__title")
+    list_filter = ("created_at", "updated_at", "author")
+    date_hierarchy = "created_at"

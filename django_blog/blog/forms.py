@@ -77,3 +77,27 @@ class PostForm(forms.ModelForm):
             'title': 'Enter a descriptive title for your blog post',
             'content': 'Write the main content of your blog post'
         }
+
+
+class CommentForm(forms.ModelForm):
+    """
+    ModelForm for creating and editing comments on blog posts.
+    Used for comment CRUD operations with proper validation.
+    """
+    class Meta:
+        model = Comment
+        fields = ['content']  # Post and author are set automatically
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'class': 'form-control',
+                'rows': 4,
+                'placeholder': 'Write your comment here...',
+                'required': True
+            })
+        }
+        labels = {
+            'content': 'Comment'
+        }
+        help_texts = {
+            'content': 'Share your thoughts about this blog post'
+        }
