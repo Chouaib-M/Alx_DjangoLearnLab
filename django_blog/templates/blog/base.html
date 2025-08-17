@@ -6,6 +6,9 @@
     <title>{% block title %}Django Blog{% endblock %}</title>
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'css/auth.css' %}">
+    
+    {% block extra_head %}{% endblock %}
 </head>
 <body>
     <header>

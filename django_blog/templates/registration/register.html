@@ -1,9 +1,15 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block title %}Register{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/register.css' %}">
+<link rel="stylesheet" href="{% static 'register.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="auth-form">
+<div class="register-form">
     <h1>Create Your Account</h1>
     
     <form method="post">

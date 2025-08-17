@@ -1,9 +1,15 @@
 {% extends 'blog/base.html' %}
+{% load static %}
 
 {% block title %}Login{% endblock %}
 
+{% block extra_head %}
+<link rel="stylesheet" href="{% static 'css/login.css' %}">
+<link rel="stylesheet" href="{% static 'login.css' %}">
+{% endblock %}
+
 {% block content %}
-<div class="auth-form">
+<div class="login-form">
     <h1>Login to Your Account</h1>
     
     <form method="post">
