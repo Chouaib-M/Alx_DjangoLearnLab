@@ -5,13 +5,27 @@ from django.dispatch import receiver
 
 
 class Post(models.Model):
-    title = models.CharField(max_length=200)
-    content = models.TextField()
-    published_date = models.DateTimeField(auto_now_add=True)
-    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts')
+    """
+    Blog Post model for managing blog posts with CRUD operations.
+    This model supports the blog post management features including:
+    - Creating new posts (authenticated users only)
+    - Reading posts (all users)
+    - Updating posts (author only via LoginRequiredMixin and UserPassesTestMixin)
+    - Deleting posts (author only via LoginRequiredMixin and UserPassesTestMixin)
+    """
+    title = models.CharField(max_length=200, help_text="Title of the blog post")
+    content = models.TextField(help_text="Main content of the blog post")
+    published_date = models.DateTimeField(auto_now_add=True, help_text="Date and time when post was created")
+    author = models.ForeignKey(User, on_delete=models.CASCADE, related_name='posts', 
+                              help_text="Author of the post - used for permission checks")
 
     def __str__(self) -> str:
         return self.title
+    
+    class Meta:
+        ordering = ['-published_date']
+        verbose_name = "Blog Post"
+        verbose_name_plural = "Blog Posts"
 
 
 class UserProfile(models.Model):

@@ -1,27 +1,40 @@
-{% extends 'blog/base.html' %}
+{% extends "blog/base.html" %}
+{% load static %}
 
-{% block title %}Create New Post{% endblock %}
+{% block title %}Create New Post - Django Blog{% endblock %}
 
 {% block content %}
 <div class="create-post-container">
-    <h1>Create a New Blog Post</h1>
-    
-    <form method="post" class="form">
+    <h2>Create New Post</h2>
+    <form method="post" class="post-form">
         {% csrf_token %}
-        
         <div class="form-group">
-            <label for="title">Post Title:</label>
-            <input type="text" name="title" id="title" required maxlength="200" placeholder="Enter your post title">
+            <label for="{{ form.title.id_for_label }}">Title:</label>
+            {{ form.title }}
+            {% if form.title.errors %}
+                <div class="error-messages">
+                    {% for error in form.title.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         
         <div class="form-group">
-            <label for="content">Post Content:</label>
-            <textarea name="content" id="content" required rows="10" placeholder="Write your blog post content here..."></textarea>
+            <label for="{{ form.content.id_for_label }}">Content:</label>
+            {{ form.content }}
+            {% if form.content.errors %}
+                <div class="error-messages">
+                    {% for error in form.content.errors %}
+                        <span class="error">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
         
         <div class="form-actions">
-            <button type="submit" class="btn btn-primary">Publish Post</button>
-            <a href="{% url 'home' %}" class="btn btn-secondary">Cancel</a>
+            <button type="submit" class="btn btn-primary">Create Post</button>
+            <a href="{% url 'posts_list' %}" class="btn btn-secondary">Cancel</a>
         </div>
     </form>
     

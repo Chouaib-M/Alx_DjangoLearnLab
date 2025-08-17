@@ -1,0 +1,43 @@
+{% extends "blog/base.html" %}
+{% block title %}Blog Posts Listing - Django Blog{% endblock %}
+
+{% block content %}
+<div class="posts-listing">
+  <h1>Blog Posts Listing</h1>
+  
+  {% if user.is_authenticated %}
+    <div class="create-post-link">
+      <a href="{% url 'post_create' %}" class="btn btn-primary">Create New Post</a>
+    </div>
+  {% endif %}
+
+  <div class="posts-grid">
+    {% for post in posts %}
+      <article class="post-card">
+        <h2><a href="{% url 'post_detail' post.pk %}">{{ post.title }}</a></h2>
+        <div class="post-meta">
+          <span class="author">By {{ post.author.username }}</span>
+          <span class="date">{{ post.published_date|date:"F d, Y" }}</span>
+        </div>
+        <div class="post-excerpt">
+          {{ post.content|truncatewords:25 }}
+        </div>
+        <div class="post-actions">
+          <a href="{% url 'post_detail' post.pk %}" class="btn btn-outline">Read More</a>
+          {% if user == post.author %}
+            <a href="{% url 'post_update' post.pk %}" class="btn btn-secondary">Edit</a>
+            <a href="{% url 'post_delete' post.pk %}" class="btn btn-danger">Delete</a>
+          {% endif %}
+        </div>
+      </article>
+    {% empty %}
+      <div class="no-posts">
+        <p>No blog posts available.</p>
+        {% if user.is_authenticated %}
+          <p><a href="{% url 'post_create' %}">Create the first post!</a></p>
+        {% endif %}
+      </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

@@ -42,22 +42,38 @@ class UserUpdateForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
-    """Form for creating and editing blog posts"""
+    """
+    ModelForm for creating and editing blog posts.
+    Used in conjunction with Django's LoginRequiredMixin and UserPassesTestMixin
+    to ensure proper permissions for blog post management CRUD operations.
+    
+    Features:
+    - Create: Used with LoginRequiredMixin in PostCreateView
+    - Update: Used with LoginRequiredMixin + UserPassesTestMixin in PostUpdateView  
+    - Author field automatically set from request.user
+    - Form validation for title and content fields
+    """
     class Meta:
         model = Post
-        fields = ['title', 'content']
+        fields = ['title', 'content']  # Author is set automatically from request.user
         widgets = {
             'title': forms.TextInput(attrs={
                 'class': 'form-control',
-                'placeholder': 'Enter post title'
+                'placeholder': 'Enter post title',
+                'required': True
             }),
             'content': forms.Textarea(attrs={
                 'class': 'form-control',
                 'rows': 10,
-                'placeholder': 'Write your post content here...'
+                'placeholder': 'Write your post content here...',
+                'required': True
             })
         }
         labels = {
             'title': 'Post Title',
             'content': 'Post Content'
+        }
+        help_texts = {
+            'title': 'Enter a descriptive title for your blog post',
+            'content': 'Write the main content of your blog post'
         }
