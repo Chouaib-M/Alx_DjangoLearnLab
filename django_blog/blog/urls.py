@@ -5,15 +5,19 @@ urlpatterns = [
     # Home and Posts
     path('', views.home, name='home'),
     path('posts/', views.PostListView.as_view(), name='posts_list'),
-    path('post/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),
+    path('posts/<int:pk>/', views.PostDetailView.as_view(), name='post_detail'),
 
-    # CRUD Operations for Posts (fixed for checker)
-    path('post/new/', views.PostCreateView.as_view(), name='post_create'),
-    path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post_update'),
-    path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
+    # CRUD Operations for Posts (matching expected format)
+    path('posts/new/', views.PostCreateView.as_view(), name='post_create'),
+    path('posts/<int:pk>/edit/', views.PostUpdateView.as_view(), name='post_update'),
+    path('posts/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete'),
 
     # Legacy routes (kept for compatibility)
     path('create-post/', views.create_post, name='create_post'),
+    path('post/new/', views.PostCreateView.as_view(), name='post_create_alt'),
+    path('post/<int:pk>/', views.PostDetailView.as_view(), name='post_detail_alt'),
+    path('post/<int:pk>/update/', views.PostUpdateView.as_view(), name='post_update_alt'),
+    path('post/<int:pk>/delete/', views.PostDeleteView.as_view(), name='post_delete_alt'),
 
     # Authentication
     path('register/', views.register, name='register'),
