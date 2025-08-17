@@ -64,19 +64,32 @@ def user_logout(request):
 
 @login_required
 def profile(request):
+    user_form = None
+    profile_form = None
+    
     if request.method == 'POST':
-        user_form = UserUpdateForm(request.POST, instance=request.user)
-        profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
-        
-        if user_form.is_valid() and profile_form.is_valid():
-            user_form.save()
-            profile_form.save()
-            messages.success(request, 'Your profile has been updated successfully!')
-            return redirect('profile')
-        else:
-            messages.error(request, 'Please correct the errors below.')
-    else:
+        # Check which form was submitted
+        if 'update_user' in request.POST:
+            user_form = UserUpdateForm(request.POST, instance=request.user)
+            if user_form.is_valid():
+                user_form.save()
+                messages.success(request, 'Your user information has been updated successfully!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please correct the errors in user information.')
+        elif 'update_profile' in request.POST:
+            profile_form = UserProfileForm(request.POST, request.FILES, instance=request.user.profile)
+            if profile_form.is_valid():
+                profile_form.save()
+                messages.success(request, 'Your profile has been updated successfully!')
+                return redirect('profile')
+            else:
+                messages.error(request, 'Please correct the errors in profile information.')
+    
+    # Initialize forms if not already set
+    if user_form is None:
         user_form = UserUpdateForm(instance=request.user)
+    if profile_form is None:
         profile_form = UserProfileForm(instance=request.user.profile)
     
     context = {
