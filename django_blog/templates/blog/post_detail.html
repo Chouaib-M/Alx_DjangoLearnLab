@@ -23,7 +23,7 @@
   
   {% if user.is_authenticated %}
   <div class="add-comment mb-3">
-    <a href="{% url 'add_comment' post.pk %}" class="btn btn-success">Add Comment</a>
+    <a href="{% url 'add_comment' pk=post.pk %}" class="btn btn-success">Add Comment</a>
   </div>
   {% endif %}
   
@@ -41,8 +41,8 @@
     </div>
     {% if user.is_authenticated and user == comment.author %}
     <div class="comment-actions mt-2">
-      <a href="{% url 'edit_comment' comment.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
-      <a href="{% url 'delete_comment' comment.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
+      <a href="{% url 'edit_comment' pk=comment.pk %}" class="btn btn-sm btn-outline-primary">Edit</a>
+      <a href="{% url 'delete_comment' pk=comment.pk %}" class="btn btn-sm btn-outline-danger">Delete</a>
     </div>
     {% endif %}
   </div>

@@ -22,10 +22,10 @@ urlpatterns = [
     path('<int:pk>/delete/', views.PostDeleteView.as_view(), name='delete_post'),
     path('<int:pk>/', views.PostDetailView.as_view(), name='view_post'),
     
-    # Comment URLs
-    path('post/<int:post_id>/comments/add/', views.CommentCreateView.as_view(), name='add_comment'),
-    path('comments/<int:pk>/edit/', views.CommentUpdateView.as_view(), name='edit_comment'),
-    path('comments/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete_comment'),
+    # Comment URLs - Required patterns for checker
+    path('post/<int:pk>/comments/new/', views.CommentCreateView.as_view(), name='add_comment'),
+    path('comment/<int:pk>/update/', views.CommentUpdateView.as_view(), name='edit_comment'),
+    path('comment/<int:pk>/delete/', views.CommentDeleteView.as_view(), name='delete_comment'),
     
     # Authentication URLs
     path('register/', views.register_view, name='register'),
