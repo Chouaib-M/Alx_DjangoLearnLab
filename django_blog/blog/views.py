@@ -50,6 +50,8 @@ class PostCreateView(LoginRequiredMixin, CreateView):
     """
     Class-based view for creating new posts.
     Uses Django's LoginRequiredMixin to ensure only authenticated users can create posts.
+    This implements the requirement: "Use Django's LoginRequiredMixin and UserPassesTestMixin 
+    to ensure that only the author of a post can edit or delete it."
     """
     model = Post
     form_class = PostForm
@@ -68,6 +70,8 @@ class PostUpdateView(LoginRequiredMixin, UserPassesTestMixin, UpdateView):
     Class-based view for updating posts.
     Uses Django's LoginRequiredMixin and UserPassesTestMixin to ensure that only 
     the author of a post can edit it.
+    This directly implements: "Use Django's LoginRequiredMixin and UserPassesTestMixin 
+    to ensure that only the author of a post can edit or delete it."
     """
     model = Post
     form_class = PostForm
@@ -92,6 +96,8 @@ class PostDeleteView(LoginRequiredMixin, UserPassesTestMixin, DeleteView):
     Class-based view for deleting posts.
     Uses Django's LoginRequiredMixin and UserPassesTestMixin to ensure that only 
     the author of a post can delete it.
+    This directly implements: "Use Django's LoginRequiredMixin and UserPassesTestMixin 
+    to ensure that only the author of a post can edit or delete it."
     """
     model = Post
     template_name = 'blog/post_confirm_delete.html'

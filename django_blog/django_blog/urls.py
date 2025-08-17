@@ -22,6 +22,8 @@ from django.conf.urls.static import static
 urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('blog.urls')),
+    # Django authentication URLs
+    path('accounts/', include('django.contrib.auth.urls')),
 ]
 
 # Serve media files during development

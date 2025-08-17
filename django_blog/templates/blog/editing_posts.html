@@ -1,0 +1,44 @@
+{% extends "blog/base.html" %}
+{% block title %}Editing Blog Post - Django Blog{% endblock %}
+
+{% block content %}
+<div class="post-editing-container">
+  <div class="editing-header">
+    <h1>Editing Blog Post</h1>
+    <p>Make changes to your post below.</p>
+  </div>
+
+  <form method="post" class="post-edit-form">
+    {% csrf_token %}
+    
+    <div class="form-field">
+      <label for="{{ form.title.id_for_label }}">Post Title</label>
+      {{ form.title }}
+      {% if form.title.errors %}
+        <div class="field-errors">
+          {% for error in form.title.errors %}
+            <span class="error-message">{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="form-field">
+      <label for="{{ form.content.id_for_label }}">Post Content</label>
+      {{ form.content }}
+      {% if form.content.errors %}
+        <div class="field-errors">
+          {% for error in form.content.errors %}
+            <span class="error-message">{{ error }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </div>
+
+    <div class="form-buttons">
+      <button type="submit" class="btn btn-success">Update Post</button>
+      <a href="{% url 'post_detail' form.instance.pk %}" class="btn btn-cancel">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

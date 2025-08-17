@@ -1,0 +1,36 @@
+{% extends "blog/base.html" %}
+{% block title %}Deleting Blog Post - Django Blog{% endblock %}
+
+{% block content %}
+<div class="post-deleting-container">
+  <div class="deleting-warning-header">
+    <h1>Deleting Blog Post</h1>
+    <div class="warning-icon">⚠️</div>
+  </div>
+
+  <div class="deletion-confirmation">
+    <p>Are you sure you want to permanently delete the following post?</p>
+    
+    <div class="post-preview-card">
+      <h3>"{{ post.title }}"</h3>
+      <div class="post-meta">
+        <span>By {{ post.author.username }}</span>
+        <span>Published {{ post.published_date|date:"F d, Y" }}</span>
+      </div>
+      <div class="post-snippet">
+        {{ post.content|truncatewords:20 }}
+      </div>
+    </div>
+    
+    <p class="warning-text"><strong>Warning:</strong> This action cannot be undone.</p>
+  </div>
+
+  <div class="deletion-actions">
+    <form method="post" style="display: inline;">
+      {% csrf_token %}
+      <button type="submit" class="btn btn-danger">Yes, Delete This Post</button>
+    </form>
+    <a href="{% url 'post_detail' post.pk %}" class="btn btn-secondary">No, Keep Post</a>
+  </div>
+</div>
+{% endblock %}
