@@ -1,5 +1,5 @@
-from rest_framework import viewsets, permissions, status
-from rest_framework.decorators import action
+from rest_framework import viewsets, permissions, status, generics
+from rest_framework.decorators import action, api_view, permission_classes
 from rest_framework.response import Response
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework.filters import SearchFilter, OrderingFilter
@@ -76,3 +76,34 @@ class CommentViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         """Set the author to the current user when creating a comment."""
         serializer.save(author=self.request.user)
+
+
+@api_view(['GET'])
+@permission_classes([permissions.IsAuthenticated])
+def feed_view(request):
+    """
+    Return posts from users that the current user follows.
+    Posts are ordered by creation date (most recent first).
+    """
+    current_user = request.user
+    
+    # Get users that the current user is following
+    following_users = current_user.following.all()
+    
+    # Get posts from followed users, ordered by creation date
+    feed_posts = Post.objects.filter(
+        author__in=following_users
+    ).order_by('-created_at')
+    
+    # Apply pagination
+    from rest_framework.pagination import PageNumberPagination
+    paginator = PageNumberPagination()
+    paginator.page_size = 10
+    
+    page = paginator.paginate_queryset(feed_posts, request)
+    if page is not None:
+        serializer = PostSerializer(page, many=True, context={'request': request})
+        return paginator.get_paginated_response(serializer.data)
+    
+    serializer = PostSerializer(feed_posts, many=True, context={'request': request})
+    return Response(serializer.data)

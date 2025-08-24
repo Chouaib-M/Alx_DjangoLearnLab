@@ -14,12 +14,12 @@ class CustomUser(AbstractUser):
         null=True,
         help_text="User profile picture"
     )
-    followers = models.ManyToManyField(
-        'self', 
-        symmetrical=False, 
-        related_name='following',
+    following = models.ManyToManyField(
+        'self',
+        symmetrical=False,
+        related_name='followers',
         blank=True,
-        help_text="Users who follow this user"
+        help_text="Users this user is following"
     )
     
     def __str__(self):
@@ -34,3 +34,16 @@ class CustomUser(AbstractUser):
     def following_count(self):
         """Return the number of users this user is following."""
         return self.following.count()
+    
+    def follow(self, user):
+        """Follow a user."""
+        if user != self:
+            self.following.add(user)
+    
+    def unfollow(self, user):
+        """Unfollow a user."""
+        self.following.remove(user)
+    
+    def is_following(self, user):
+        """Check if this user is following another user."""
+        return self.following.filter(id=user.id).exists()

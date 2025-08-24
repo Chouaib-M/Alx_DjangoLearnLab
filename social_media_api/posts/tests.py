@@ -158,3 +158,68 @@ class CommentAPITest(APITestCase):
         response = self.client.get('/api/comments/')
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(len(response.data['results']), 1)
+
+
+class FeedAPITest(APITestCase):
+    """Test cases for Feed functionality."""
+    
+    def setUp(self):
+        # Create users
+        self.user1 = User.objects.create_user(
+            username='user1',
+            email='user1@example.com',
+            password='testpass123'
+        )
+        self.user2 = User.objects.create_user(
+            username='user2',
+            email='user2@example.com',
+            password='testpass123'
+        )
+        self.user3 = User.objects.create_user(
+            username='user3',
+            email='user3@example.com',
+            password='testpass123'
+        )
+        
+        # Create tokens
+        self.token1 = Token.objects.create(user=self.user1)
+        
+        # User1 follows User2
+        self.user1.follow(self.user2)
+        
+        # Create posts
+        self.post1 = Post.objects.create(
+            title='Post by User2',
+            content='This is a post by user2',
+            author=self.user2
+        )
+        self.post2 = Post.objects.create(
+            title='Post by User3',
+            content='This is a post by user3',
+            author=self.user3
+        )
+    
+    def test_feed_shows_followed_users_posts(self):
+        """Test that feed shows posts from followed users only."""
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + self.token1.key)
+        response = self.client.get('/api/feed/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        # Should contain post from user2 (followed) but not user3 (not followed)
+        self.assertEqual(len(response.data['results']), 1)
+        self.assertEqual(response.data['results'][0]['title'], 'Post by User2')
+    
+    def test_feed_empty_when_not_following_anyone(self):
+        """Test that feed is empty when user doesn't follow anyone."""
+        # Create a new user who doesn't follow anyone
+        user4 = User.objects.create_user(
+            username='user4',
+            email='user4@example.com',
+            password='testpass123'
+        )
+        token4 = Token.objects.create(user=user4)
+        
+        self.client.credentials(HTTP_AUTHORIZATION='Token ' + token4.key)
+        response = self.client.get('/api/feed/')
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(len(response.data['results']), 0)

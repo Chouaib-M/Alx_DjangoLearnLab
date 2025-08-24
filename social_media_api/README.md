@@ -65,7 +65,8 @@ The API will be available at `http://127.0.0.1:8000/`
 
 ### Social Features
 
-- **POST** `/api/accounts/follow/{user_id}/` - Follow/unfollow a user
+- **POST** `/api/accounts/follow/{user_id}/` - Follow a user
+- **POST** `/api/accounts/unfollow/{user_id}/` - Unfollow a user
 
 ### Posts Management
 
@@ -85,13 +86,18 @@ The API will be available at `http://127.0.0.1:8000/`
 - **PUT/PATCH** `/api/comments/{id}/` - Update own comment
 - **DELETE** `/api/comments/{id}/` - Delete own comment
 
+### Feed
+
+- **GET** `/api/feed/` - Get personalized feed of posts from followed users
+
 ## User Model
 
 The custom user model extends Django's `AbstractUser` with additional fields:
 
 - `bio`: Text field for user biography (max 500 characters)
 - `profile_picture`: Image field for profile picture
-- `followers`: Many-to-many relationship for follower functionality
+- `following`: Many-to-many relationship for users this user follows
+- Helper methods: `follow()`, `unfollow()`, `is_following()`
 
 ## Authentication
 
@@ -169,10 +175,23 @@ curl -X POST http://127.0.0.1:8000/api/posts/1/add_comment/ \
   }'
 ```
 
-### Follow a User
+### Follow/Unfollow Users
 
 ```bash
+# Follow a user
 curl -X POST http://127.0.0.1:8000/api/accounts/follow/2/ \
+  -H "Authorization: Token your_token_here"
+
+# Unfollow a user
+curl -X POST http://127.0.0.1:8000/api/accounts/unfollow/2/ \
+  -H "Authorization: Token your_token_here"
+```
+
+### Get Personalized Feed
+
+```bash
+# Get feed of posts from followed users
+curl -X GET http://127.0.0.1:8000/api/feed/ \
   -H "Authorization: Token your_token_here"
 ```
 
@@ -239,7 +258,14 @@ All list endpoints support pagination with configurable page size (default: 10 i
 ### Permissions
 - Users can only edit/delete their own posts and comments
 - All authenticated users can view posts and comments
+- Users can only modify their own following relationships
 - Custom `IsAuthorOrReadOnly` permission class
+
+### Feed Algorithm
+- Shows posts from users the current user follows
+- Ordered by creation date (newest first)
+- Paginated results (10 posts per page)
+- Real-time updates when following/unfollowing users
 
 ## Testing
 
@@ -254,14 +280,29 @@ python manage.py test accounts
 python manage.py test posts
 ```
 
+## Social Features
+
+### Following System
+- Users can follow/unfollow other users
+- View followers and following counts
+- Check follow status between users
+- Prevent self-following
+
+### Personalized Feed
+- Dynamic content feed based on followed users
+- Chronological ordering (newest first)
+- Efficient database queries
+- Pagination support
+
 ## Next Steps
 
 This foundation provides the base for extending with additional social media features such as:
 
 - Likes and reactions on posts
 - Direct messaging
-- Notifications
-- Content feeds and timelines
+- Push notifications for new posts from followed users
+- Trending posts and hashtags
 - Image/media uploads for posts
-- Hashtags and mentions
+- User mentions and tagging
 - User blocking and reporting
+- Activity feeds and notifications
