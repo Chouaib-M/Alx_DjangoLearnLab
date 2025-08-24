@@ -86,69 +86,71 @@ class UserDetailView(generics.RetrieveAPIView):
     permission_classes = [permissions.IsAuthenticated]
 
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def follow_user(request, user_id):
+class FollowUserView(generics.GenericAPIView):
     """
     Follow a user.
     """
-    try:
-        user_to_follow = CustomUser.objects.get(id=user_id)
-        current_user = request.user
-        
-        if current_user == user_to_follow:
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, user_id):
+        try:
+            user_to_follow = CustomUser.objects.get(id=user_id)
+            current_user = request.user
+            
+            if current_user == user_to_follow:
+                return Response({
+                    'error': 'You cannot follow yourself'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if current_user.is_following(user_to_follow):
+                return Response({
+                    'error': 'You are already following this user'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            current_user.follow(user_to_follow)
+            
             return Response({
-                'error': 'You cannot follow yourself'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        if current_user.is_following(user_to_follow):
+                'message': f'You are now following {user_to_follow.username}',
+                'following': True,
+                'followers_count': user_to_follow.followers_count
+            }, status=status.HTTP_200_OK)
+            
+        except CustomUser.DoesNotExist:
             return Response({
-                'error': 'You are already following this user'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        current_user.follow(user_to_follow)
-        
-        return Response({
-            'message': f'You are now following {user_to_follow.username}',
-            'following': True,
-            'followers_count': user_to_follow.followers_count
-        }, status=status.HTTP_200_OK)
-        
-    except CustomUser.DoesNotExist:
-        return Response({
-            'error': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
 
 
-@api_view(['POST'])
-@permission_classes([permissions.IsAuthenticated])
-def unfollow_user(request, user_id):
+class UnfollowUserView(generics.GenericAPIView):
     """
     Unfollow a user.
     """
-    try:
-        user_to_unfollow = CustomUser.objects.get(id=user_id)
-        current_user = request.user
-        
-        if current_user == user_to_unfollow:
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def post(self, request, user_id):
+        try:
+            user_to_unfollow = CustomUser.objects.get(id=user_id)
+            current_user = request.user
+            
+            if current_user == user_to_unfollow:
+                return Response({
+                    'error': 'You cannot unfollow yourself'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            if not current_user.is_following(user_to_unfollow):
+                return Response({
+                    'error': 'You are not following this user'
+                }, status=status.HTTP_400_BAD_REQUEST)
+            
+            current_user.unfollow(user_to_unfollow)
+            
             return Response({
-                'error': 'You cannot unfollow yourself'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        if not current_user.is_following(user_to_unfollow):
+                'message': f'You unfollowed {user_to_unfollow.username}',
+                'following': False,
+                'followers_count': user_to_unfollow.followers_count
+            }, status=status.HTTP_200_OK)
+            
+        except CustomUser.DoesNotExist:
             return Response({
-                'error': 'You are not following this user'
-            }, status=status.HTTP_400_BAD_REQUEST)
-        
-        current_user.unfollow(user_to_unfollow)
-        
-        return Response({
-            'message': f'You unfollowed {user_to_unfollow.username}',
-            'following': False,
-            'followers_count': user_to_unfollow.followers_count
-        }, status=status.HTTP_200_OK)
-        
-    except CustomUser.DoesNotExist:
-        return Response({
-            'error': 'User not found'
-        }, status=status.HTTP_404_NOT_FOUND)
+                'error': 'User not found'
+            }, status=status.HTTP_404_NOT_FOUND)
