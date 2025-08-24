@@ -91,9 +91,7 @@ def feed_view(request):
     following_users = current_user.following.all()
     
     # Get posts from followed users, ordered by creation date
-    feed_posts = Post.objects.filter(
-        author__in=following_users
-    ).order_by('-created_at')
+    feed_posts = Post.objects.filter(author__in=following_users).order_by('-created_at')
     
     # Apply pagination
     from rest_framework.pagination import PageNumberPagination
