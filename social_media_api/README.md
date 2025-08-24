@@ -1,6 +1,6 @@
 # Social Media API
 
-A Django REST Framework-based social media API with user authentication, profile management, and social features.
+A Django REST Framework-based social media API with user authentication, profile management, posts, comments, and social features.
 
 ## Features
 
@@ -9,6 +9,10 @@ A Django REST Framework-based social media API with user authentication, profile
 - **Profile Management**: View and update user profiles
 - **Social Features**: Follow/unfollow users, view followers and following
 - **User Discovery**: List and search users
+- **Posts Management**: Create, read, update, delete posts with pagination and filtering
+- **Comments System**: Add, edit, delete comments on posts
+- **Advanced Filtering**: Search posts by title/content, filter by author and date
+- **Permissions**: Users can only edit/delete their own posts and comments
 
 ## Setup Instructions
 
@@ -63,6 +67,24 @@ The API will be available at `http://127.0.0.1:8000/`
 
 - **POST** `/api/accounts/follow/{user_id}/` - Follow/unfollow a user
 
+### Posts Management
+
+- **GET** `/api/posts/` - List all posts (with pagination, filtering, search)
+- **POST** `/api/posts/` - Create a new post
+- **GET** `/api/posts/{id}/` - Get specific post with comments
+- **PUT/PATCH** `/api/posts/{id}/` - Update own post
+- **DELETE** `/api/posts/{id}/` - Delete own post
+- **GET** `/api/posts/{id}/comments/` - Get all comments for a post
+- **POST** `/api/posts/{id}/add_comment/` - Add comment to a post
+
+### Comments Management
+
+- **GET** `/api/comments/` - List all comments (with pagination and filtering)
+- **POST** `/api/comments/` - Create a new comment
+- **GET** `/api/comments/{id}/` - Get specific comment
+- **PUT/PATCH** `/api/comments/{id}/` - Update own comment
+- **DELETE** `/api/comments/{id}/` - Delete own comment
+
 ## User Model
 
 The custom user model extends Django's `AbstractUser` with additional fields:
@@ -108,11 +130,43 @@ curl -X POST http://127.0.0.1:8000/api/accounts/login/ \
   }'
 ```
 
-### Get User Profile
+### Create a Post
 
 ```bash
-curl -X GET http://127.0.0.1:8000/api/accounts/profile/ \
+curl -X POST http://127.0.0.1:8000/api/posts/ \
+  -H "Authorization: Token your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "title": "My First Post",
+    "content": "This is the content of my first post!"
+  }'
+```
+
+### Get Posts with Filtering
+
+```bash
+# Get all posts
+curl -X GET http://127.0.0.1:8000/api/posts/ \
   -H "Authorization: Token your_token_here"
+
+# Search posts by title/content
+curl -X GET "http://127.0.0.1:8000/api/posts/?search=first" \
+  -H "Authorization: Token your_token_here"
+
+# Filter posts by author
+curl -X GET "http://127.0.0.1:8000/api/posts/?author=1" \
+  -H "Authorization: Token your_token_here"
+```
+
+### Add Comment to Post
+
+```bash
+curl -X POST http://127.0.0.1:8000/api/posts/1/add_comment/ \
+  -H "Authorization: Token your_token_here" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "content": "Great post! Thanks for sharing."
+  }'
 ```
 
 ### Follow a User
@@ -143,13 +197,23 @@ social_media_api/
 │   ├── urls.py
 │   ├── wsgi.py
 │   └── asgi.py
-└── accounts/
+├── accounts/
+│   ├── __init__.py
+│   ├── admin.py
+│   ├── apps.py
+│   ├── models.py
+│   ├── serializers.py
+│   ├── views.py
+│   ├── urls.py
+│   └── tests.py
+└── posts/
     ├── __init__.py
     ├── admin.py
     ├── apps.py
     ├── models.py
     ├── serializers.py
     ├── views.py
+    ├── permissions.py
     ├── urls.py
     └── tests.py
 ```
@@ -162,13 +226,42 @@ social_media_api/
 - User permission checks for profile modifications
 - Secure file upload handling for profile pictures
 
+## Advanced Features
+
+### Pagination
+All list endpoints support pagination with configurable page size (default: 10 items per page).
+
+### Filtering and Search
+- **Posts**: Filter by author, creation date; search by title and content
+- **Comments**: Filter by author, post, creation date; search by content
+- **Ordering**: Sort by creation date, update date, and other relevant fields
+
+### Permissions
+- Users can only edit/delete their own posts and comments
+- All authenticated users can view posts and comments
+- Custom `IsAuthorOrReadOnly` permission class
+
+## Testing
+
+Run the complete test suite:
+
+```bash
+# Test all apps
+python manage.py test
+
+# Test specific app
+python manage.py test accounts
+python manage.py test posts
+```
+
 ## Next Steps
 
 This foundation provides the base for extending with additional social media features such as:
 
-- Posts and content creation
-- Comments and likes
+- Likes and reactions on posts
 - Direct messaging
 - Notifications
-- Content feeds
-- Search functionality
+- Content feeds and timelines
+- Image/media uploads for posts
+- Hashtags and mentions
+- User blocking and reporting
