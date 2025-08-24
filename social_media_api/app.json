@@ -1,0 +1,56 @@
+{
+  "name": "Social Media API",
+  "description": "A Django REST API for social media functionality with posts, comments, likes, follows, and notifications",
+  "image": "heroku/python",
+  "repository": "https://github.com/yourusername/social_media_api",
+  "keywords": ["python", "django", "rest-api", "social-media"],
+  "addons": [
+    {
+      "plan": "heroku-postgresql:mini"
+    }
+  ],
+  "env": {
+    "SECRET_KEY": {
+      "description": "A secret key for Django",
+      "generator": "secret"
+    },
+    "DEBUG": {
+      "description": "Debug mode",
+      "value": "False"
+    },
+    "ALLOWED_HOSTS": {
+      "description": "Allowed hosts for the application",
+      "value": "localhost,127.0.0.1"
+    },
+    "SECURE_SSL_REDIRECT": {
+      "description": "Redirect HTTP to HTTPS",
+      "value": "True"
+    },
+    "SECURE_BROWSER_XSS_FILTER": {
+      "description": "Enable XSS filter",
+      "value": "True"
+    },
+    "SECURE_CONTENT_TYPE_NOSNIFF": {
+      "description": "Prevent MIME type sniffing",
+      "value": "True"
+    },
+    "X_FRAME_OPTIONS": {
+      "description": "X-Frame-Options header",
+      "value": "DENY"
+    }
+  },
+  "formation": {
+    "web": {
+      "quantity": 1,
+      "size": "eco"
+    }
+  },
+  "buildpacks": [
+    {
+      "url": "heroku/python"
+    }
+  ],
+  "scripts": {
+    "postdeploy": "python manage.py migrate && python manage.py collectstatic --noinput"
+  }
+}

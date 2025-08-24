@@ -1,233 +1,265 @@
-# Social Media API
+# Social Media API - Production Deployment Guide
 
-A Django REST Framework-based social media API with user authentication, profile management, posts, comments, and social features.
+A comprehensive Django REST Framework-based social media API that provides user authentication, posts and comments management, user following relationships, personalized feeds, likes, and notifications system.
 
-## Features
+## 🚀 Production Deployment
 
-- **User Authentication**: Registration, login, and token-based authentication
-- **Custom User Model**: Extended user model with bio, profile picture, and followers
-- **Profile Management**: View and update user profiles
-- **Social Features**: Follow/unfollow users, view followers and following
-- **User Discovery**: List and search users
-- **Posts Management**: Create, read, update, delete posts with pagination and filtering
-- **Comments System**: Add, edit, delete comments on posts
-- **Advanced Filtering**: Search posts by title/content, filter by author and date
-- **Permissions**: Users can only edit/delete their own posts and comments
+### Prerequisites for Production
+- Python 3.11+
+- PostgreSQL 13+
+- Redis (optional, for caching)
+- Domain name and SSL certificate
+- Cloud hosting service (Heroku, AWS, DigitalOcean, etc.)
 
-## Setup Instructions
+## 📋 Deployment Checklist
 
-### Prerequisites
+### Step 1: Environment Configuration
 
-- Python 3.8+
-- pip (Python package installer)
-
-### Installation
-
-1. **Install Dependencies**
+1. **Create Production Environment Variables**
    ```bash
-   pip install -r requirements.txt
+   cp .env.example .env
+   ```
+
+2. **Configure Production Settings**
+   ```env
+   SECRET_KEY=your-super-secret-production-key
+   DEBUG=False
+   ALLOWED_HOSTS=yourdomain.com,www.yourdomain.com
+   DATABASE_URL=postgres://user:password@host:port/dbname
+   SECURE_SSL_REDIRECT=True
+   SECURE_BROWSER_XSS_FILTER=True
+   SECURE_CONTENT_TYPE_NOSNIFF=True
+   X_FRAME_OPTIONS=DENY
+   ```
+
+### Step 2: Database Setup
+
+1. **PostgreSQL Configuration**
+   ```sql
+   CREATE DATABASE social_media_api;
+   CREATE USER api_user WITH PASSWORD 'secure_password';
+   GRANT ALL PRIVILEGES ON DATABASE social_media_api TO api_user;
    ```
 
 2. **Run Migrations**
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
+   python manage.py collectstatic --noinput
    ```
 
-3. **Create Superuser (Optional)**
+### Step 3: Web Server Configuration
+
+#### Option A: Heroku Deployment
+
+1. **Install Heroku CLI**
    ```bash
-   python manage.py createsuperuser
+   # Install Heroku CLI from https://devcenter.heroku.com/articles/heroku-cli
    ```
 
-4. **Start Development Server**
+2. **Deploy to Heroku**
    ```bash
-   python manage.py runserver
+   # Login to Heroku
+   heroku login
+   
+   # Create Heroku app
+   heroku create your-app-name
+   
+   # Add PostgreSQL addon
+   heroku addons:create heroku-postgresql:mini
+   
+   # Set environment variables
+   heroku config:set SECRET_KEY=your-secret-key
+   heroku config:set DEBUG=False
+   heroku config:set ALLOWED_HOSTS=your-app-name.herokuapp.com
+   
+   # Deploy
+   git push heroku main
+   
+   # Run migrations
+   heroku run python manage.py migrate
+   heroku run python manage.py collectstatic --noinput
    ```
 
-The API will be available at `http://127.0.0.1:8000/`
+3. **One-Click Heroku Deploy**
+   [![Deploy](https://www.herokucdn.com/deploy/button.svg)](https://heroku.com/deploy)
 
-## API Endpoints
+#### Option B: DigitalOcean App Platform
 
-### Authentication
+1. **Create app.yaml**
+   ```yaml
+   name: social-media-api
+   services:
+   - name: web
+     source_dir: /
+     github:
+       repo: your-username/social-media-api
+       branch: main
+     run_command: gunicorn social_media_api.wsgi:application
+     environment_slug: python
+     instance_count: 1
+     instance_size_slug: basic-xxs
+     envs:
+     - key: SECRET_KEY
+       value: your-secret-key
+     - key: DEBUG
+       value: "False"
+     - key: DATABASE_URL
+       value: ${db.DATABASE_URL}
+   databases:
+   - name: db
+     engine: PG
+     version: "13"
+   ```
 
-- **POST** `/api/accounts/register/` - Register a new user
-- **POST** `/api/accounts/login/` - Login user
+#### Option C: AWS Elastic Beanstalk
 
-### Profile Management
+1. **Install EB CLI**
+   ```bash
+   pip install awsebcli
+   ```
 
-- **GET** `/api/accounts/profile/` - Get current user profile
-- **PUT/PATCH** `/api/accounts/profile/` - Update current user profile
+2. **Initialize and Deploy**
+   ```bash
+   eb init social-media-api
+   eb create production
+   eb deploy
+   ```
 
-### User Discovery
+### Step 4: Docker Deployment
 
-- **GET** `/api/accounts/users/` - List all users
-- **GET** `/api/accounts/users/{id}/` - Get specific user profile
+1. **Build and Run with Docker**
+   ```bash
+   # Build the image
+   docker build -t social-media-api .
+   
+   # Run with Docker Compose
+   docker-compose up -d
+   ```
 
-### Social Features
+2. **Production Docker Compose**
+   ```yaml
+   version: '3.8'
+   services:
+     web:
+       build: .
+       ports:
+         - "80:8000"
+       environment:
+         - DEBUG=False
+         - DATABASE_URL=postgres://postgres:password@db:5432/social_media_api
+       depends_on:
+         - db
+         - redis
+     
+     db:
+       image: postgres:15
+       environment:
+         - POSTGRES_DB=social_media_api
+         - POSTGRES_USER=postgres
+         - POSTGRES_PASSWORD=password
+       volumes:
+         - postgres_data:/var/lib/postgresql/data/
+     
+     redis:
+       image: redis:7-alpine
+   
+   volumes:
+     postgres_data:
+   ```
 
-- **POST** `/api/accounts/follow/{user_id}/` - Follow a user
-- **POST** `/api/accounts/unfollow/{user_id}/` - Unfollow a user
+## 🔒 Security Configuration
 
-### Posts Management
-
-- **GET** `/api/posts/` - List all posts (with pagination, filtering, search)
-- **POST** `/api/posts/` - Create a new post
-- **GET** `/api/posts/{id}/` - Get specific post with comments
-- **PUT/PATCH** `/api/posts/{id}/` - Update own post
-- **DELETE** `/api/posts/{id}/` - Delete own post
-- **GET** `/api/posts/{id}/comments/` - Get all comments for a post
-- **POST** `/api/posts/{id}/add_comment/` - Add comment to a post
-
-### Comments Management
-
-- **GET** `/api/comments/` - List all comments (with pagination and filtering)
-- **POST** `/api/comments/` - Create a new comment
-- **GET** `/api/comments/{id}/` - Get specific comment
-- **PUT/PATCH** `/api/comments/{id}/` - Update own comment
-- **DELETE** `/api/comments/{id}/` - Delete own comment
-
-### Feed
-
-- **GET** `/api/feed/` - Get personalized feed of posts from followed users
-
-## User Model
-
-The custom user model extends Django's `AbstractUser` with additional fields:
-
-- `bio`: Text field for user biography (max 500 characters)
-- `profile_picture`: Image field for profile picture
-- `following`: Many-to-many relationship for users this user follows
-- Helper methods: `follow()`, `unfollow()`, `is_following()`
-
-## Authentication
-
-The API uses Django REST Framework's token authentication. Include the token in the Authorization header:
-
+### SSL/HTTPS Setup
+```python
+# In settings.py for production
+SECURE_SSL_REDIRECT = True
+SECURE_HSTS_SECONDS = 31536000
+SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+SECURE_HSTS_PRELOAD = True
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
 ```
-Authorization: Token your_token_here
+
+### Additional Security Headers
+```python
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+SECURE_REFERRER_POLICY = 'strict-origin-when-cross-origin'
 ```
 
-## Usage Examples
+## 📊 Monitoring & Logging
 
-### Register a New User
+### Application Monitoring
+```python
+# Add to settings.py
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {process:d} {thread:d} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO',
+    },
+}
+```
 
+### Health Check Endpoint
+```python
+# Add to urls.py
+from django.http import JsonResponse
+
+def health_check(request):
+    return JsonResponse({'status': 'healthy'})
+
+urlpatterns = [
+    path('health/', health_check),
+    # ... other patterns
+]
+```
+
+## 🚀 Performance Optimization
+
+### Database Optimization
+```python
+# Add database connection pooling
+DATABASES = {
+    'default': dj_database_url.config(
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+}
+```
+
+### Caching Configuration
+```python
+# Redis caching
+CACHES = {
+    'default': {
+        'BACKEND': 'django_redis.cache.RedisCache',
+        'LOCATION': 'redis://127.0.0.1:6379/1',
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        }
+    }
+}
+```
+
+## 📝 Deployment Commands
+
+### Pre-deployment Checklist
 ```bash
-curl -X POST http://127.0.0.1:8000/api/accounts/register/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "johndoe",
-    "email": "john@example.com",
-    "password": "securepassword123",
-    "password_confirm": "securepassword123",
-    "first_name": "John",
-    "last_name": "Doe",
-    "bio": "Hello, I am John!"
-  }'
-```
-
-### Login User
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/accounts/login/ \
-  -H "Content-Type: application/json" \
-  -d '{
-    "username": "johndoe",
-    "password": "securepassword123"
-  }'
-```
-
-### Create a Post
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/posts/ \
-  -H "Authorization: Token your_token_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "title": "My First Post",
-    "content": "This is the content of my first post!"
-  }'
-```
-
-### Get Posts with Filtering
-
-```bash
-# Get all posts
-curl -X GET http://127.0.0.1:8000/api/posts/ \
-  -H "Authorization: Token your_token_here"
-
-# Search posts by title/content
-curl -X GET "http://127.0.0.1:8000/api/posts/?search=first" \
-  -H "Authorization: Token your_token_here"
-
-# Filter posts by author
-curl -X GET "http://127.0.0.1:8000/api/posts/?author=1" \
-  -H "Authorization: Token your_token_here"
-```
-
-### Add Comment to Post
-
-```bash
-curl -X POST http://127.0.0.1:8000/api/posts/1/add_comment/ \
-  -H "Authorization: Token your_token_here" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "content": "Great post! Thanks for sharing."
-  }'
-```
-
-### Follow/Unfollow Users
-
-```bash
-# Follow a user
-curl -X POST http://127.0.0.1:8000/api/accounts/follow/2/ \
-  -H "Authorization: Token your_token_here"
-
-# Unfollow a user
-curl -X POST http://127.0.0.1:8000/api/accounts/unfollow/2/ \
-  -H "Authorization: Token your_token_here"
-```
-
-### Get Personalized Feed
-
-```bash
-# Get feed of posts from followed users
-curl -X GET http://127.0.0.1:8000/api/feed/ \
-  -H "Authorization: Token your_token_here"
-```
-
-## Testing
-
-Run the test suite:
-
-```bash
-python manage.py test accounts
-```
-
-## Project Structure
-
-```
-social_media_api/
-├── manage.py
-├── requirements.txt
-├── README.md
-├── social_media_api/
-│   ├── __init__.py
-│   ├── settings.py
-│   ├── urls.py
-│   ├── wsgi.py
-│   └── asgi.py
-├── accounts/
-│   ├── __init__.py
-│   ├── admin.py
-│   ├── apps.py
-│   ├── models.py
-│   ├── serializers.py
-│   ├── views.py
-│   ├── urls.py
-│   └── tests.py
-└── posts/
-    ├── __init__.py
-    ├── admin.py
+# 1. Run tests
     ├── apps.py
     ├── models.py
     ├── serializers.py
