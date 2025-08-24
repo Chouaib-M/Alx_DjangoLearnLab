@@ -18,9 +18,7 @@ class Post(models.Model):
         max_length=200, 
         help_text="Title of the post"
     )
-    content = models.TextField(
-        help_text="Content/body of the post"
-    )
+    content = models.TextField()  # Content/body of the post
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Timestamp when the post was created"
@@ -60,9 +58,7 @@ class Comment(models.Model):
         related_name='comments',
         help_text="The user who created this comment"
     )
-    content = models.TextField(
-        help_text="Content of the comment"
-    )
+    content = models.TextField()  # Content of the comment
     created_at = models.DateTimeField(
         auto_now_add=True,
         help_text="Timestamp when the comment was created"
