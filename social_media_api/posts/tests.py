@@ -207,7 +207,7 @@ class FeedAPITest(APITestCase):
         
         # Should contain post from user2 (followed) but not user3 (not followed)
         self.assertEqual(len(response.data['results']), 1)
-        self.assertEqual(response.data['results'][0]['title'], 'Post by User2')
+        self.assertEqual(response.data['results'][0]['id'], self.post_by_followed.id)
     
     def test_feed_empty_when_not_following_anyone(self):
         """Test that feed is empty when user doesn't follow anyone."""
